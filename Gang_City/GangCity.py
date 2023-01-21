@@ -90,7 +90,6 @@ HINTCOLOR = BROWN
 
 def main():
     global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE, no_piece, player1, player2, player3, player4, cop
-
     pygame.init()
     MAINCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
@@ -136,15 +135,13 @@ def runGame():
     resetBoard(mainBoard)
     resetPieces(pieces)
     showHints = False
-    players = ['player1', 'player2']
+    players = [player1, player2]
     turn = random.choice(players)
 
     # Draw the starting board and ask the player what color they want.
     drawBoard(mainBoard, pieces)
     player1Tile = enterPlayerTile()
-    print("player1Tile")
     player2Tile = enterPlayerTile()
-    print("player2Tile")
     #player3Tile = enterPlayerTile()
     #print("player3Tile")
     #player4Tile = enterPlayerTile()
@@ -152,16 +149,6 @@ def runGame():
     starting_pos = chooseStartingPositions(turn, players, mainBoard, pieces)
     print("START GAME!")
 
-    
-
-
-    # Make the Surface and Rect objects for the "New Game" and "Hints" buttons
-    newGameSurf = FONT.render('New Game', True, TEXTCOLOR, TEXTBGCOLOR2)
-    newGameRect = newGameSurf.get_rect()
-    newGameRect.topright = (WINDOWWIDTH - 8, 10)
-    hintsSurf = FONT.render('Hints', True, TEXTCOLOR, TEXTBGCOLOR2)
-    hintsRect = hintsSurf.get_rect()
-    hintsRect.topright = (WINDOWWIDTH - 8, 40)
 
     #Action Menu objects - rect is (left,top,width,height)
     MENUWIDTH = WINDOWWIDTH / 6
@@ -190,13 +177,16 @@ def runGame():
     moveWarning = BIGFONT.render('You cant move there', True, WHITE, BLACK)
     moveWarningRect = moveWarning.get_rect()
 
+    action_count = 0
+
 
     while True: # main game loop
         # Keep looping for player and computer's turns.
-        if turn == 'player1':
+        player_idx = players.index(turn)
+        print(player_idx)
+        movexy = None
+        if action_count <= 1:
             # Player's turn:
-
-            movexy = None
             while movexy == None:
                 # Keep looping until the player clicks on a valid space.
 
@@ -228,139 +218,33 @@ def runGame():
                                     mousex, mousey = event.pos
                                     if moveButtonRect.collidepoint((mousex,mousey)):
                                         #change to a seperate function, players, board, pieces
-                                        wait_for_move = True
-                                        drawBoard(mainBoard, pieces)
-                                        MAINCLOCK.tick(FPS)
-                                        pygame.display.update()
-                                        while wait_for_move == True:
-                                            for event in pygame.event.get():
-                                                if event.type == MOUSEBUTTONUP:
-                                                    mousex, mousey = event.pos
-                                                    x,y = getSpaceClicked(mousex, mousey)
-                                                    x_old = x
-                                                    y_old = y
-                                                    print(x)
-                                                    print(y)
-                                                    print(pieces[x][y])
-                                                    if player1 in pieces[x][y]:
-                                                        #UI - does this need a message or is this intuitive?
-                                                        #print("where to move?")
-                                                        pieces[x][y] = [no_piece,no_piece]
-                                                        drawBoard(mainBoard, pieces)
-                                                        MAINCLOCK.tick(FPS)
-                                                        pygame.display.update()
-                                                        wait_for_space = True
-                                                        while wait_for_space == True:
-                                                            for event in pygame.event.get():
-                                                                if event.type == MOUSEBUTTONUP:
-                                                                    mousex, mousey = event.pos
-                                                                    x,y = getSpaceClicked(mousex, mousey)
-                                                                    if (x_old - 1) <= x <= (x_old + 1) and (y_old - 1) <= y <= (y_old + 1):
-                                                                        pieces[x][y] = [player1,no_piece]
-                                                                        drawBoard(mainBoard, pieces)
-                                                                        MAINCLOCK.tick(FPS)
-                                                                        pygame.display.update()
-                                                                        wait_for_space = False
-                                                                        wait_for_move = False
-                                                                    else:
-                                                                        drawBoard(mainBoard, pieces)
-                                                                        moveWarningRect = pygame.Rect(mousex, mousey, moveWarningRect[2],moveWarningRect[3])
-                                                                        DISPLAYSURF.blit(moveWarning, moveWarningRect)
-                                                                    MAINCLOCK.tick(FPS)
-                                                                    pygame.display.update()
-                                                    else:
-                                                        drawBoard(mainBoard, pieces)
-                                                        pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
-                                                        DISPLAYSURF.blit(pieceWarning, pieceWarningRect)
-                                                    MAINCLOCK.tick(FPS)
-                                                    pygame.display.update()
-                                        print("Move")
+                                        move(turn, mainBoard, pieces)
+                                        action_count += 1
+                                        print("action_count" + str(action_count))
                                     elif bribeButtonRect.collidepoint( (mousex,mousey)):
-                                        print("Bribe")
+                                        action_count += 1 
                                     elif hitButtonRect.collidepoint( (mousex,mousey)):
-                                        print("Hit")
+                                        action_count += 1 
                                     elif jobButtonRect.collidepoint( (mousex,mousey)):
-                                        print("Job")
+                                        action_count += 1 
 
                                     wait_for_selection = False
-                        
-                
-                        #menu.mainloop(DISPLAYSURF, bgfun=drawBoard(mainBoard, pieces))
-
-                    #if event.type == MOUSEBUTTONUP:
-                        ## Handle mouse click events
-                        #mousex, mousey = event.pos
-                        #if newGameRect.collidepoint( (mousex, mousey) ):
-                            ## Start a new game
-                            #return True
-                        #elif hintsRect.collidepoint( (mousex, mousey) ):
-                            # Toggle hints mode
-                            #showHints = not showHints
-                        # movexy is set to a two-item tuple XY coordinate, or None value
-                        #movexy = getSpaceClicked(mousex, mousey)
-                        
+                                    if action_count >= 2:
+                                        if player_idx < len(players) - 1:
+                                            turn = players[player_idx + 1]
+                                        else: 
+                                            turn = players[0]   
+                                        action_count = 0
+                                        print(turn)
+                                        break
 
                 # Draw the game board.
+
                 drawBoard(mainBoard, pieces)
-                #drawInfo(mainBoard, player1Tile, computerTile, turn)
-
-                # Draw the "New Game" and "Hints" buttons.
-                
-
                 MAINCLOCK.tick(FPS)
                 pygame.display.update()
 
-            # Make the move and end the turn.
-            #makeMove(mainBoard, player1Tile, movexy[0], movexy[1], True)
 
-            
-            pieces[movexy[0]][movexy[1]] = [player1, no_piece]
-
-            turn = 'player2'
-
-        if turn == 'player2':
-            # Player's turn:
-
-            movexy = None
-            while movexy == None:
-                # Keep looping until the player clicks on a valid space.
-
-
-                checkForQuit()
-                for event in pygame.event.get(): # event handling loop
-                    if event.type == MOUSEBUTTONUP:
-                        # Handle mouse click events
-                        mousex, mousey = event.pos
-                        if newGameRect.collidepoint( (mousex, mousey) ):
-                            # Start a new game
-                            return True
-                        elif hintsRect.collidepoint( (mousex, mousey) ):
-                            # Toggle hints mode
-                            showHints = not showHints
-                        # movexy is set to a two-item tuple XY coordinate, or None value
-                        movexy = getSpaceClicked(mousex, mousey)
-                        
-
-                # Draw the game board.
-                drawBoard(mainBoard, pieces)
-                #drawInfo(mainBoard, player1Tile, computerTile, turn)
-
-                # Draw the "New Game" and "Hints" buttons.
-                
-
-                MAINCLOCK.tick(FPS)
-                pygame.display.update()
-
-            # Make the move and end the turn.
-            #makeMove(mainBoard, player1Tile, movexy[0], movexy[1], True)
-
-            
-            pieces[movexy[0]][movexy[1]] = [player2, no_piece]
-
-            turn = 'player1'
-            #if getValidMoves(mainBoard, computerTile) != []:
-                # Only set for the computer's turn if it can make a move.
-                #turn = 'computer'
         
         #else:
             # Computer's turn:
@@ -393,86 +277,10 @@ def runGame():
     #drawBoard(mainBoard)
     #scores = getScoreOfBoard(mainBoard)
 
-    # Determine the text of the message to display.
-   # if scores[player1Tile] > scores[computerTile]:
-       # text = 'You beat the computer by %s points! Congratulations!' % \
-               #(scores[player1Tile] - scores[computerTile])
-    #elif scores[player1Tile] < scores[computerTile]:
-       # text = 'You lost. The computer beat you by %s points.' % \
-               #(scores[computerTile] - scores[player1Tile])
-    #else:
-        #text = 'The game was a tie!'
-
-    textSurf = FONT.render(text, True, TEXTCOLOR, TEXTBGCOLOR1)
-    textRect = textSurf.get_rect()
-    textRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
-    DISPLAYSURF.blit(textSurf, textRect)
-
-    # Display the "Play again?" text with Yes and No buttons.
-    text2Surf = BIGFONT.render('Play again?', True, TEXTCOLOR, TEXTBGCOLOR1)
-    text2Rect = text2Surf.get_rect()
-    text2Rect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 50)
-
-    # Make "Yes" button.
-    yesSurf = BIGFONT.render('Yes', True, TEXTCOLOR, TEXTBGCOLOR1)
-    yesRect = yesSurf.get_rect()
-    yesRect.center = (int(WINDOWWIDTH / 2) - 60, int(WINDOWHEIGHT / 2) + 90)
-
-    # Make "No" button.
-    noSurf = BIGFONT.render('No', True, TEXTCOLOR, TEXTBGCOLOR1)
-    noRect = noSurf.get_rect()
-    noRect.center = (int(WINDOWWIDTH / 2) + 60, int(WINDOWHEIGHT / 2) + 90)
-
-    while True:
-        # Process events until the user clicks on Yes or No.
-        checkForQuit()
-        for event in pygame.event.get(): # event handling loop
-            if event.type == MOUSEBUTTONUP:
-                mousex, mousey = event.pos
-                if yesRect.collidepoint( (mousex, mousey) ):
-                    return True
-                elif noRect.collidepoint( (mousex, mousey) ):
-                    return False
-        DISPLAYSURF.blit(textSurf, textRect)
-        DISPLAYSURF.blit(text2Surf, text2Rect)
-        DISPLAYSURF.blit(yesSurf, yesRect)
-        DISPLAYSURF.blit(noSurf, noRect)
-        pygame.display.update()
-        MAINCLOCK.tick(FPS)
+    
 
 def translateBoardToPixelCoord(x, y):
     return XMARGIN + x * SPACESIZE + int(SPACESIZE / 2), YMARGIN + y * SPACESIZE + int(SPACESIZE / 2)
-
-
-def animateTileChange(tilesToFlip, tileColor, additionalTile):
-    # Draw the additional tile that was just laid down. (Otherwise we'd
-    # have to completely redraw the board & the board info.)
-    if tileColor == BLUE_TILE:
-        additionalTileColor = BRIGHTBLUE
-    else:
-        additionalTileColor = BLACK
-    additionalTileX, additionalTileY = translateBoardToPixelCoord(additionalTile[0], additionalTile[1])
-    pygame.draw.circle(DISPLAYSURF, additionalTileColor, (additionalTileX, additionalTileY), int(SPACESIZE / 2) - 4)
-    pygame.display.update()
-
-    for rgbValues in range(0, 255, int(ANIMATIONSPEED * 2.55)):
-        if rgbValues > 255:
-            rgbValues = 255
-        elif rgbValues < 0:
-            rgbValues = 0
-
-        if tileColor == BLUE_TILE:
-            color = tuple([rgbValues] * 3) # rgbValues goes from 0 to 255
-        elif tileColor == BLACK_TILE:
-            color = tuple([255 - rgbValues] * 3) # rgbValues goes from 255 to 0
-
-        for x, y in tilesToFlip:
-            centerx, centery = translateBoardToPixelCoord(x, y)
-            pygame.draw.circle(DISPLAYSURF, color, (centerx, centery), int(SPACESIZE / 2) - 4)
-        pygame.display.update()
-        MAINCLOCK.tick(FPS)
-        checkForQuit()
-
 
 def drawBoard(board, pieces):
     # Draw background of board.
@@ -601,16 +409,6 @@ def getSpaceClicked(mousex, mousey):
                 return (x, y)
     return None
 
-
-def drawInfo(board, player1Tile, computerTile, turn):
-    # Draws scores and whose turn it is at the bottom of the screen.
-    scores = getScoreOfBoard(board)
-    scoreSurf = FONT.render("Player Score: %s    Computer Score: %s    %s's Turn" % (str(scores[player1Tile]), str(scores[computerTile]), turn.title()), True, TEXTCOLOR)
-    scoreRect = scoreSurf.get_rect()
-    scoreRect.bottomleft = (10, WINDOWHEIGHT - 5)
-    DISPLAYSURF.blit(scoreSurf, scoreRect)
-
-
 def resetBoard(board):
     # Blanks out the board it is passed, and sets up starting tiles.
     for x in range(BOARDWIDTH):
@@ -687,7 +485,6 @@ def chooseStartingPositions(turn, players, board, pieces):
                             # Toggle hints mode
                         # movexy is set to a two-item tuple XY coordinate, or None value
                     movexy = getSpaceClicked(mousex, mousey)
-                    print(pieces[movexy[0]][movexy[1]])
                     
                     while pieces[movexy[0]][movexy[1]] != [no_piece, no_piece]:
                         #print("choose a spot with no other made men on it")
@@ -738,59 +535,6 @@ def chooseStartingPositions(turn, players, board, pieces):
 
             rounds +=1
             count = 0
-            print(rounds)
-
-
-
-
-def isValidMove(board, tile, xstart, ystart):
-    # Returns False if the player's move is invalid. If it is a valid
-    # move, returns a list of spaces of the captured pieces.
-    if board[xstart][ystart] != EMPTY_SPACE or not isOnBoard(xstart, ystart):
-        return False
-
-    board[xstart][ystart] = tile # temporarily set the tile on the board.
-
-    if tile == BLUE_TILE:
-        otherTile = BLACK_TILE
-    else:
-        otherTile = BLUE_TILE
-
-    tilesToFlip = []
-    # check each of the eight directions:
-    for xdirection, ydirection in [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]:
-        x, y = xstart, ystart
-        x += xdirection
-        y += ydirection
-        if isOnBoard(x, y) and board[x][y] == otherTile:
-            # The piece belongs to the other player next to our piece.
-            x += xdirection
-            y += ydirection
-            if not isOnBoard(x, y):
-                continue
-            while board[x][y] == otherTile:
-                x += xdirection
-                y += ydirection
-                if not isOnBoard(x, y):
-                    break # break out of while loop, continue in for loop
-            if not isOnBoard(x, y):
-                continue
-            if board[x][y] == tile:
-                # There are pieces to flip over. Go in the reverse
-                # direction until we reach the original space, noting all
-                # the tiles along the way.
-                while True:
-                    x -= xdirection
-                    y -= ydirection
-                    if x == xstart and y == ystart:
-                        break
-                    tilesToFlip.append([x, y])
-
-    board[xstart][ystart] = EMPTY_SPACE # make space empty
-    if len(tilesToFlip) == 0: # If no tiles flipped, this move is invalid
-        return False
-    return tilesToFlip
-
 
 def isOnBoard(x, y):
     # Returns True if the coordinates are located on the board.
@@ -815,21 +559,6 @@ def getValidMoves(board, tile):
             if isValidMove(board, tile, x, y) != False:
                 validMoves.append((x, y))
     return validMoves
-
-
-def getScoreOfBoard(board):
-    # Determine the score by counting the tiles.
-    xscore = 0
-    oscore = 0
-    for x in range(BOARDWIDTH):
-        for y in range(BOARDHEIGHT):
-            if board[x][y] == BLUE_TILE:
-                xscore += 1
-            if board[x][y] == BLACK_TILE:
-                oscore += 1
-    return {BLUE_TILE:xscore, BLACK_TILE:oscore}
-
-#def chooseStartingPos():
 
 
 def enterPlayerTile():
@@ -897,24 +626,6 @@ def enterPlayerTile():
         MAINCLOCK.tick(FPS)
 
 
-def makeMove(board, tile, xstart, ystart, realMove=False):
-    # Place the tile on the board at xstart, ystart, and flip tiles
-    # Returns False if this is an invalid move, True if it is valid.
-    tilesToFlip = isValidMove(board, tile, xstart, ystart)
-
-    if tilesToFlip == False:
-        return False
-
-    board[xstart][ystart] = tile
-
-    if realMove:
-        animateTileChange(tilesToFlip, tile, (xstart, ystart))
-
-    for x, y in tilesToFlip:
-        board[x][y] = tile
-    return True
-
-
 def isOnCorner(x, y):
     # Returns True if the position is in one of the four corners.
     return (x == 0 and y == 0) or \
@@ -954,8 +665,54 @@ def checkForQuit():
             pygame.quit()
             sys.exit()
 
-def move():
-    print("move")
+def move(player,board,pieces):
+    pieceWarning = BIGFONT.render('Choose your own piece', True, WHITE, BLACK)
+    pieceWarningRect = pieceWarning.get_rect()
+
+    moveWarning = BIGFONT.render('You cant move there', True, WHITE, BLACK)
+    moveWarningRect = moveWarning.get_rect()
+    wait_for_move = True
+    drawBoard(board, pieces)
+    MAINCLOCK.tick(FPS)
+    pygame.display.update()
+    while wait_for_move == True:
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONUP:
+                mousex, mousey = event.pos
+                x,y = getSpaceClicked(mousex, mousey)
+                x_old = x
+                y_old = y
+                if player in pieces[x][y]:
+                    #UI - does this need a message or is this intuitive?
+                    pieces[x][y] = [no_piece,no_piece]
+                    drawBoard(board, pieces)
+                    MAINCLOCK.tick(FPS)
+                    pygame.display.update()
+                    wait_for_space = True
+                    while wait_for_space == True:
+                        for event in pygame.event.get():
+                            if event.type == MOUSEBUTTONUP:
+                                mousex, mousey = event.pos
+                                x,y = getSpaceClicked(mousex, mousey)
+                                if (x_old - 1) <= x <= (x_old + 1) and (y_old - 1) <= y <= (y_old + 1):
+                                    pieces[x][y] = [player,no_piece]
+                                    drawBoard(board, pieces)
+                                    MAINCLOCK.tick(FPS)
+                                    pygame.display.update()
+                                    wait_for_space = False
+                                    wait_for_move = False
+                                else:
+                                    drawBoard(board, pieces)
+                                    moveWarningRect = pygame.Rect(mousex, mousey, moveWarningRect[2],moveWarningRect[3])
+                                    DISPLAYSURF.blit(moveWarning, moveWarningRect)
+                                MAINCLOCK.tick(FPS)
+                                pygame.display.update()
+                else:
+                    drawBoard(board, pieces)
+                    pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
+                    DISPLAYSURF.blit(pieceWarning, pieceWarningRect)
+                    MAINCLOCK.tick(FPS)
+                    pygame.display.update()
 
 def bribe():
     print("bribe")
