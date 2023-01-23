@@ -45,6 +45,7 @@ YELLOW     = (255, 255, 0)
 ORANGE     = (255, 69, 0)
 
 
+
 class madeMan(pygame.sprite.Sprite):
     def __init__(self, color):
         super(madeMan, self).__init__()
@@ -67,8 +68,6 @@ class cop_piece(pygame.sprite.Sprite):
         self.surf = pygame.transform.scale(self.surf, (SPACESIZE/2 - 5, SPACESIZE/2 - 5))
         pygame.Surface.set_colorkey(self.surf, (255,255,255))
         self.rect = self.surf.get_rect()
-
-
 
 # Amount of space on the left & right side (XMARGIN) or above and below
 # (YMARGIN) the game board, in pixels.
@@ -108,12 +107,14 @@ def main():
     BGIMAGE = pygame.transform.smoothscale(BGIMAGE, (WINDOWWIDTH, WINDOWHEIGHT))
     BGIMAGE.blit(boardImage, boardImageRect)
 
-    no_piece= "NO_PIECE"
+
+    no_piece = "no_piece"
     player1 = madeMan(BLACK)
     player2 = madeMan(BRIGHTBLUE)
     player3 = madeMan(RED)
     player4 = madeMan(GREEN)
     cop = cop_piece(BROWN)
+
 
 
     # Run the main game.
@@ -130,6 +131,7 @@ def runGame():
     player4Tile = None
  
     # Reset the board and game.
+    player_bank = [0,0,0,0]
     mainBoard = getNewBoard()
     pieces = getPieces()
     resetBoard(mainBoard)
@@ -183,13 +185,13 @@ def runGame():
     while True: # main game loop
         # Keep looping for player and computer's turns.
         player_idx = players.index(turn)
-        print(player_idx)
         movexy = None
         if action_count <= 1:
             # Player's turn:
+            getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile, player3Tile, player4Tile)
+            print(player_bank)
             while movexy == None:
                 # Keep looping until the player clicks on a valid space.
-
 
                 checkForQuit()
                 for event in pygame.event.get(): # event handling loop
@@ -281,6 +283,45 @@ def runGame():
 
 def translateBoardToPixelCoord(x, y):
     return XMARGIN + x * SPACESIZE + int(SPACESIZE / 2), YMARGIN + y * SPACESIZE + int(SPACESIZE / 2)
+
+def getRevenues(board, pieces, players, player_bank, player1Tile, player2Tile, player3Tile, player4Tile):
+
+    player_bank[0] += 1
+    player_bank[1] += 1
+    player_bank[2] += 1
+    player_bank[3] += 1
+
+    for x in range(BOARDWIDTH):
+        for y in range(BOARDHEIGHT):
+            for player in players:
+                if board[x][y] == SPEAK_EASY and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 2
+
+                elif board[x][y] == LOAN_SHARK and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 2
+               
+                elif board[x][y] == PAWN_SHOP and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 2
+
+                elif board[x][y] == MOM_POP and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 2
+
+                elif board[x][y] == BANK and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 3
+
+                elif board[x][y] ==FINANCIAL_DISTRICT and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 3
+
+                elif board[x][y] == DISTILLERY and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 3
+
+                elif board[x][y] == RACE_TRACK and player in pieces[x][y]:
+                    player_bank[players.index(player)] += 3
+
+
+
+    return player_bank
+
 
 def drawBoard(board, pieces):
     # Draw background of board.
@@ -383,19 +424,23 @@ def drawBoard(board, pieces):
                 RT_IMAGE = pygame.transform.scale(RT_IMAGE, (SPACESIZE - 5, SPACESIZE - 5))
                 DISPLAYSURF.blit(RT_IMAGE, (centerx - SPACESIZE/2 + 5, centery - SPACESIZE/2 + 5))
 
-            if pieces[x][y] == [player1, no_piece] or pieces[x][y] == [player2, no_piece]  or pieces[x][y] == [player3, no_piece]  or pieces[x][y] == [player4, no_piece]:
-                DISPLAYSURF.blit(pieces[x][y][0].surf, (centerx, centery))
-
-            if pieces[x][y] == [no_piece, cop] or pieces[x][y] == [no_piece, cop]  or pieces[x][y] == [no_piece, cop]  or pieces[x][y] == [no_piece, cop]:
+            if len(pieces[x][y]) == 2:
                 DISPLAYSURF.blit(pieces[x][y][1].surf, (centerx, centery))
             
-            if pieces[x][y] == [player1, cop] or pieces[x][y] == [player2, cop]  or pieces[x][y] == [player3, cop]  or pieces[x][y] == [player4, cop]:
-                DISPLAYSURF.blit(pieces[x][y][0].surf, (centerx, centery))
+            if len(pieces[x][y]) == 3:
+                DISPLAYSURF.blit(pieces[x][y][2].surf, (centerx, centery))
                 DISPLAYSURF.blit(pieces[x][y][1].surf, (centerx - int(SPACESIZE/2), centery - int(SPACESIZE/2)))
 
-            if pieces[x][y] == [cop, cop]:
-                DISPLAYSURF.blit(pieces[x][y][0].surf, (centerx, centery))
-                DISPLAYSURF.blit(pieces[x][y][1].surf, (centerx - int(SPACESIZE/2), centery - int(SPACESIZE/2)))
+            if len(pieces[x][y]) == 4:
+                DISPLAYSURF.blit(pieces[x][y][1].surf, (centerx, centery))
+                DISPLAYSURF.blit(pieces[x][y][2].surf, (centerx - int(SPACESIZE/2), centery - int(SPACESIZE/2)))
+                DISPLAYSURF.blit(pieces[x][y][3].surf, (centerx - int(SPACESIZE/2), centery))
+
+            if len(pieces[x][y]) == 5:
+                DISPLAYSURF.blit(pieces[x][y][1].surf, (centerx, centery))
+                DISPLAYSURF.blit(pieces[x][y][2].surf, (centerx - int(SPACESIZE/2), centery - int(SPACESIZE/2)))
+                DISPLAYSURF.blit(pieces[x][y][3].surf, (centerx - int(SPACESIZE/2), centery))
+                DISPLAYSURF.blit(pieces[x][y][4].surf, (centerx, centery - int(SPACESIZE/2)))
 
 def getSpaceClicked(mousex, mousey):
     # Return a tuple of two integers of the board space coordinates where
@@ -436,11 +481,10 @@ def resetBoard(board):
 
 def resetPieces(pieces):
     # Blanks out the board it is passed, and sets up starting tiles.
-
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
-            pieces[x][y] = [no_piece, no_piece]
-    pieces[2][2] = [cop, cop]
+            pieces[x][y] = [no_piece]
+    pieces[2][2] = [no_piece, cop, cop]
 
     return pieces
     
@@ -456,7 +500,7 @@ def getPieces():
     # Creates a brand new, empty board data structure.
     pieces = []
     for i in range(BOARDWIDTH):
-        pieces.append([EMPTY_SPACE] * BOARDHEIGHT)
+        pieces.append([no_piece] * BOARDHEIGHT)
 
     return pieces
 
@@ -486,7 +530,7 @@ def chooseStartingPositions(turn, players, board, pieces):
                         # movexy is set to a two-item tuple XY coordinate, or None value
                     movexy = getSpaceClicked(mousex, mousey)
                     
-                    while pieces[movexy[0]][movexy[1]] != [no_piece, no_piece]:
+                    while len(pieces[movexy[0]][movexy[1]]) != 1:
                         #print("choose a spot with no other made men on it")
                         for event in pygame.event.get(): # event handling loop
                             if event.type == MOUSEBUTTONUP:
@@ -505,11 +549,11 @@ def chooseStartingPositions(turn, players, board, pieces):
             
         if selector == players[0]:
 
-            pieces[movexy[0]][movexy[1]] = [player1, no_piece]
+            pieces[movexy[0]][movexy[1]].append(player1)
 
         elif selector == players[1]:
 
-            pieces[movexy[0]][movexy[1]] = [player2, no_piece]
+            pieces[movexy[0]][movexy[1]].append(player2)
 
            # if selector == players[2]:
 
@@ -684,7 +728,8 @@ def move(player,board,pieces):
                 y_old = y
                 if player in pieces[x][y]:
                     #UI - does this need a message or is this intuitive?
-                    pieces[x][y] = [no_piece,no_piece]
+                    print(pieces[x][y])
+                    pieces[x][y].remove(player)
                     drawBoard(board, pieces)
                     MAINCLOCK.tick(FPS)
                     pygame.display.update()
@@ -695,7 +740,7 @@ def move(player,board,pieces):
                                 mousex, mousey = event.pos
                                 x,y = getSpaceClicked(mousex, mousey)
                                 if (x_old - 1) <= x <= (x_old + 1) and (y_old - 1) <= y <= (y_old + 1):
-                                    pieces[x][y] = [player,no_piece]
+                                    pieces[x][y].append(player)
                                     drawBoard(board, pieces)
                                     MAINCLOCK.tick(FPS)
                                     pygame.display.update()
