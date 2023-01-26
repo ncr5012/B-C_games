@@ -71,7 +71,7 @@ class cop_piece(pygame.sprite.Sprite):
         pygame.Surface.set_colorkey(self.surf, (255,255,255))
         self.rect = self.surf.get_rect()
         self.bribe = None
-        self.player = None
+        self.player = "cop"
 
 class no_piece_class(pygame.sprite.Sprite):
     def __init__(self):
@@ -122,6 +122,7 @@ def main():
 
     players = ["player1", "player2"]
     player_bank = [0,0,0,0]
+    bribe_bank = [0,0,0,0]
 
     no_piece = no_piece_class( )
     player11 = madeMan(BLACK, players[0])
@@ -167,7 +168,7 @@ def runGame():
     #player4Tile = enterPlayerTile()
     #print("player4Tile")
     starting_pos = chooseStartingPositions(turn, players, mainBoard, pieces)
-    print("START GAME!")
+
 
 
     #Action Menu objects - rect is (left,top,width,height)
@@ -242,6 +243,7 @@ def runGame():
                                         move(turn, mainBoard, pieces)
                                         action_count += 1
                                     elif bribeButtonRect.collidepoint( (mousex,mousey)):
+                                        bribe(turn, mainBoard, pieces)
                                         action_count += 1 
                                     elif hitButtonRect.collidepoint( (mousex,mousey)):
                                         action_count += 1 
@@ -249,18 +251,19 @@ def runGame():
                                         action_count += 1 
 
                                     wait_for_selection = False
-                                    print(action_count)
-                                    print(player_idx)
-                                    print(len(players))
+                                    print("action_count" + str(action_count))
                                     if action_count >= 2:
                                         if player_idx < len(players) - 1:
                                             turn = players[player_idx + 1]
                                             player_idx += 1
                                         else: 
+                                            getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
+                                            print(player_bank)
+                                            copMove(mainBoard,pieces)
                                             turn = players[0]
                                             player_idx = 0
+
                                         action_count = 0
-                                        print(turn)
                                         break
 
                 # Draw the game board.
@@ -269,40 +272,6 @@ def runGame():
                 MAINCLOCK.tick(FPS)
                 pygame.display.update()
 
-
-        
-        #else:
-            # Computer's turn:
-            #if getValidMoves(mainBoard, computerTile) == []:
-                # If it was set to be the computer's turn but
-                # they can't move, then end the game.
-                #break
-
-            # Draw the board.
-            #drawBoard(mainBoard)
-            #drawInfo(mainBoard, player1Tile, computerTile, turn)
-
-            # Draw the "New Game" and "Hints" buttons.
-            #DISPLAYSURF.blit(newGameSurf, newGameRect)
-            #DISPLAYSURF.blit(hintsSurf, hintsRect)
-
-            # Make it look like the computer is thinking by pausing a bit.
-            #pauseUntil = time.time() + random.randint(5, 15) * 0.1
-            #while time.time() < pauseUntil:
-                #pygame.display.update()
-
-            # Make the move and end the turn.
-            #x, y = getComputerMove(mainBoard, computerTile)
-            #makeMove(mainBoard, computerTile, x, y, True)
-            #if getValidMoves(mainBoard, player1Tile) != []:
-                # Only set for the player's turn if they can make a move.
-                #turn = 'player'
-
-    # Display the final score.
-    #drawBoard(mainBoard)
-    #scores = getScoreOfBoard(mainBoard)
-
-    
 
 def translateBoardToPixelCoord(x, y):
     return XMARGIN + x * SPACESIZE + int(SPACESIZE / 2), YMARGIN + y * SPACESIZE + int(SPACESIZE / 2)
@@ -317,36 +286,84 @@ def getRevenues(board, pieces, players, player_bank, player1Tile, player2Tile):
 
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
+            copFlag = copCheck(x, y, pieces)
             for player in players:
                 for piece in pieces[x][y]:
                     if board[x][y] == SPEAK_EASY and piece.player == player:
-                        player_bank[players.index(player)] += 2
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 1
+                        else:
+                            player_bank[players.index(player)] += 2
 
                     elif board[x][y] == LOAN_SHARK and piece.player == player:
-                        player_bank[players.index(player)] += 2
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 1
+                        else:
+                            player_bank[players.index(player)] += 2
                 
                     elif board[x][y] == PAWN_SHOP and piece.player == player:
-                        player_bank[players.index(player)] += 2
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 1
+                        else:
+                            player_bank[players.index(player)] += 2
 
                     elif board[x][y] == MOM_POP and piece.player == player:
-                        player_bank[players.index(player)] += 2
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 2
+                        else:
+                            player_bank[players.index(player)] += 4
 
                     elif board[x][y] == BANK and piece.player == player:
-                        player_bank[players.index(player)] += 3
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 2
+                        else:
+                            player_bank[players.index(player)] += 4
 
                     elif board[x][y] ==FINANCIAL_DISTRICT and piece.player == player:
-                        player_bank[players.index(player)] += 3
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 2
+                        else:
+                            player_bank[players.index(player)] += 4
 
                     elif board[x][y] == DISTILLERY and piece.player == player:
-                        player_bank[players.index(player)] += 3
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 2
+                        else:
+                            player_bank[players.index(player)] += 4
 
                     elif board[x][y] == RACE_TRACK and piece.player == player:
-                        player_bank[players.index(player)] += 3
+                        if copFlag == True:
+                            #if player.copbribe = true then effect dampened, 
+                            player_bank[players.index(player)] += 2
+                        else:
+                            player_bank[players.index(player)] += 4
 
 
 
     return player_bank
 
+def copCheck(x, y, pieces):
+    copFlag = False
+    xi = [-1, 0, 1]
+    yj = [-1, 0, 1]
+
+    for i in xi:
+        for j in yj:
+            if isOnBoard(x+i,y+j):
+                for piece in pieces[x+i][y+j]:
+                    if piece.player == "cop":
+                        copFlag = True
+                        break
+    
+    return copFlag
+                    
 
 def drawBoard(board, pieces):
     # Draw background of board.
@@ -786,7 +803,68 @@ def move(player,board,pieces):
                         MAINCLOCK.tick(FPS)
                         pygame.display.update()
 
-def bribe():
+
+
+def bribe(player, board, pieces):
+    #not functional
+    pieceWarning = BIGFONT.render('Choose your own piece next to a cop or journalist', True, WHITE, BLACK)
+    pieceWarningRect = pieceWarning.get_rect()
+    count = 0
+    text_value = None
+    wait_for_input = True
+    wait_for_key = True
+    drawBoard(board, pieces)
+    MAINCLOCK.tick(FPS)
+    pygame.display.update()
+    while wait_for_input == True:
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONUP:
+                mousex, mousey = event.pos
+                x,y = getSpaceClicked(mousex, mousey)
+                print(pieces[x][y])
+                for piece in pieces[x][y]:
+                    #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
+                    if piece.player == player and (cop1 in pieces[x][y]):
+                        while wait_for_key == True:
+                            for event in pygame.event.get():
+                                if event.type == pygame.K_DOWN:
+                                    count -= 1
+                                elif event.type == pygame.K_UP:
+                                    count += 1
+
+                                elif event.type == pygame.K_RETURN:
+                                    print(count)
+                                    wait_for_key == False
+                                    wait_for_input == False
+
+                                    #wait_for_key = False
+                        #pop up input, user types in number, send input to bribe bank 
+                    #elif journalist flag true do same
+                    #if neither, then return to action menu, dont get charged an action 
+                        #if both true choose 
+                    elif piece.player == player and (cop2 in pieces[x][y]):
+                        while wait_for_key == True:
+                            for event in pygame.event.get():
+                                if event.type == pygame.K_DOWN:
+                                    count -= 1
+                                elif event.type == pygame.K_UP:
+                                    count += 1
+
+                                elif event.type == pygame.K_RETURN:
+                                    print(count)
+                                    wait_for_key == False
+                                    wait_for_input == False
+                    continue
+
+                else:
+                    drawBoard(board, pieces)
+                    pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
+                    DISPLAYSURF.blit(pieceWarning, pieceWarningRect)
+                    MAINCLOCK.tick(FPS)
+                    pygame.display.update()
+                    time.sleep(1)
+                    wait_for_input = False
+                    break
     print("bribe")
     
 def hit():
@@ -794,6 +872,30 @@ def hit():
 
 def spaceaction():
     print("doaction")
+
+def copMove(board,pieces):
+    
+    delta_x = 200
+    delta_y = 200
+    copcount = 0
+
+    for x in range(BOARDWIDTH):
+        for y in range(BOARDHEIGHT):
+            for piece in pieces[x][y]:
+                if piece.player == "cop" and copcount <= 1:
+                    while isOnBoard(x + delta_x, y + delta_y) != True:
+                        delta_x = random.choice((-1,0,1))
+                        delta_y = random.choice((-1,0,1))
+                        pieces[x][y].remove(piece)
+                        pieces[x + delta_x][y + delta_y].append(piece)
+                    delta_x = 200
+                    delta_y = 200
+                    copcount += 1
+                    print(copcount)
+                    drawBoard(board, pieces)
+                    MAINCLOCK.tick(FPS)
+                    pygame.display.update()
+
     
 
 if __name__ == '__main__':
