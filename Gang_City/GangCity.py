@@ -73,6 +73,17 @@ class cop_piece(pygame.sprite.Sprite):
         self.bribe = None
         self.player = "cop"
 
+class journalist_piece(pygame.sprite.Sprite):
+    def __init__(self, color):
+        super(journalist_piece, self).__init__()
+        self.surf = pygame.image.load('Journalist.png')
+        self.surf.convert()
+        self.surf = pygame.transform.scale(self.surf, (SPACESIZE/2 - 5, SPACESIZE/2 - 5))
+        pygame.Surface.set_colorkey(self.surf, (255,255,255))
+        self.rect = self.surf.get_rect()
+        self.bribe = None
+        self.player = "journalist"
+
 class no_piece_class(pygame.sprite.Sprite):
     def __init__(self):
         super(no_piece_class, self).__init__()
@@ -96,7 +107,7 @@ HINTCOLOR = BROWN
 
 
 def main():
-    global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE, players, player_bank, no_piece, player11, player12, player13, player21, player22, player23, player31, player32, player33, player41, player42, player43, cop1, cop2
+    global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE, players, player_bank, cop_bribe_bank, journalist_bribe_bank, no_piece, player11, player12, player13, player21, player22, player23, player31, player32, player33, player41, player42, player43, cop1, cop2, journalist
     pygame.init()
     MAINCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
@@ -122,7 +133,8 @@ def main():
 
     players = ["player1", "player2"]
     player_bank = [0,0,0,0]
-    bribe_bank = [0,0,0,0]
+    cop_bribe_bank = [0,0,0,0]
+    journalist_bribe_bank = [0,0,0,0]
 
     no_piece = no_piece_class( )
     player11 = madeMan(BLACK, players[0])
@@ -139,6 +151,7 @@ def main():
     #player43 = madeMan(GREEN, players[3])
     cop1 = cop_piece(BROWN)
     cop2 = cop_piece(BROWN)
+    journalist = journalist_piece(BROWN)
 
     # Run the main game.
     while True:
@@ -243,8 +256,14 @@ def runGame():
                                         move(turn, mainBoard, pieces)
                                         action_count += 1
                                     elif bribeButtonRect.collidepoint( (mousex,mousey)):
-                                        bribe(turn, mainBoard, pieces)
-                                        action_count += 1 
+                                        copCount, journalistCount, chargeAction = bribe(turn, mainBoard, pieces)
+                                        cop_bribe_bank[player_idx] += copCount
+                                        journalist_bribe_bank[player_idx] += journalistCount
+                                        player_bank[player_idx] -= (copCount + journalistCount)
+                                        print(cop_bribe_bank)
+                                        print(journalist_bribe_bank)
+                                        if chargeAction == True:
+                                            action_count += 1 
                                     elif hitButtonRect.collidepoint( (mousex,mousey)):
                                         action_count += 1 
                                     elif jobButtonRect.collidepoint( (mousex,mousey)):
@@ -526,7 +545,9 @@ def resetPieces(pieces):
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
             pieces[x][y] = [no_piece]
-    pieces[2][2] = [no_piece, cop1, cop2]
+    pieces[1][2] = [no_piece, cop1]
+    pieces[2][2] = [no_piece, journalist]
+    pieces[3][2] = [no_piece, cop2]
 
     return pieces
     
@@ -807,9 +828,35 @@ def move(player,board,pieces):
 
 def bribe(player, board, pieces):
     #not functional
+
+    #Action Menu objects - rect is (left,top,width,height)
+    MENUWIDTH = WINDOWWIDTH / 6
+    MENUHEIGHT = WINDOWHEIGHT / 3
+    BUTTONWIDTH = MENUWIDTH / 1.2
+    BUTTONHEIGHT = MENUHEIGHT / 8
+    
+    
+    
+    #Width and height do not appear to change anything in actionmenurect but i left them just in case
+    cjMenuRect = pygame.Rect(100,100,MENUWIDTH,MENUHEIGHT)
+    cjMenuSurf = pygame.Surface((MENUWIDTH, MENUHEIGHT))
+    pygame.draw.rect(cjMenuSurf, WHITE, cjMenuSurf.get_rect())
+    copButton = BIGFONT.render('Cop', True, WHITE, BLACK)
+    copButtonRect = copButton.get_rect()
+    journalistButton = BIGFONT.render('Journalist', True, WHITE, BLACK)
+    journalistButtonRect = journalistButton.get_rect()
+
     pieceWarning = BIGFONT.render('Choose your own piece next to a cop or journalist', True, WHITE, BLACK)
     pieceWarningRect = pieceWarning.get_rect()
-    count = 0
+    cjWarning = BIGFONT.render('Choose your own piece next to a cop or journalist', True, WHITE, BLACK)
+    cjWarningRect = pieceWarning.get_rect()
+    cj = None
+    copCount = 0
+    journalistCount = 0
+    count = copCount + journalistCount
+    chargeAction = False
+    countBox = BIGFONT.render(str(count), True, WHITE, BLACK)
+    countBoxRect = countBox.get_rect()
     text_value = None
     wait_for_input = True
     wait_for_key = True
@@ -821,41 +868,144 @@ def bribe(player, board, pieces):
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
                 x,y = getSpaceClicked(mousex, mousey)
-                print(pieces[x][y])
-                for piece in pieces[x][y]:
-                    #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
-                    if piece.player == player and (cop1 in pieces[x][y]):
-                        while wait_for_key == True:
+                if (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and journalist_piece in pieces[x][y]:
+                    while wait_for_selection == True:  
+                            drawBoard(board, pieces)
+                            DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                            copButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, copButtonRect[2],copButtonRect[3])
+                            journalistButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 115, journalistButtonRect[2],journalistButtonRect[3])
+                            DISPLAYSURF.blit(copButton, copButtonRect)
+                            DISPLAYSURF.blit(journalistButton, journalistButtonRect)
+                            MAINCLOCK.tick(FPS)
+                            pygame.display.update()
+
                             for event in pygame.event.get():
-                                if event.type == pygame.K_DOWN:
-                                    count -= 1
-                                elif event.type == pygame.K_UP:
-                                    count += 1
+                                
+                                #Action menu loop
+                                if event.type == MOUSEBUTTONUP:
 
-                                elif event.type == pygame.K_RETURN:
-                                    print(count)
-                                    wait_for_key == False
-                                    wait_for_input == False
+                                    mousex, mousey = event.pos
+                                    if copButtonRect.collidepoint((mousex,mousey)):
+                                        #change to a seperate function, players, board, pieces
+                                        for piece in pieces[x][y]:
+                        #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
+                                            if piece.player == player:
+                                                pygame.key.start_text_input()
+                                                while wait_for_key == True:
+                                                    for event in pygame.event.get():
 
-                                    #wait_for_key = False
-                        #pop up input, user types in number, send input to bribe bank 
-                    #elif journalist flag true do same
-                    #if neither, then return to action menu, dont get charged an action 
-                        #if both true choose 
-                    elif piece.player == player and (cop2 in pieces[x][y]):
-                        while wait_for_key == True:
-                            for event in pygame.event.get():
-                                if event.type == pygame.K_DOWN:
-                                    count -= 1
-                                elif event.type == pygame.K_UP:
-                                    count += 1
+                                                        if event.type == pygame.KEYDOWN:
+                                                            if event.key == K_DOWN:
+                                                                copCount -= 1
+                                                            elif event.key == K_UP:
+                                                                copCount += 1
+                                                            elif event.key == K_RETURN:
+                                                                pygame.key.stop_text_input()
+                                                                wait_for_key == False
+                                                                wait_for_input == False
+                                                                chargeAction = True
+                                                                return copCount, journalistCount, chargeAction
+                                                        else:
+                                                            drawBoard(board, pieces)
+                                                            countBox = BIGFONT.render(str(copCount), True, WHITE, BLACK)
+                                                            countBoxRect = countBox.get_rect()
+                                                            countBoxRect = pygame.Rect(mousex, mousey, countBoxRect[2],countBoxRect[3])
+                                                            DISPLAYSURF.blit(countBox, countBoxRect)
+                                                            MAINCLOCK.tick(FPS)
+                                                            pygame.display.update()
 
-                                elif event.type == pygame.K_RETURN:
-                                    print(count)
-                                    wait_for_key == False
-                                    wait_for_input == False
-                    continue
+                                    elif journalistButtonRect.collidepoint( (mousex,mousey)):
+                                        for piece in pieces[x][y]:
+                        #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
+                                            if piece.player == player:
+                                                pygame.key.start_text_input()
+                                                while wait_for_key == True:
+                                                    for event in pygame.event.get():
 
+                                                        if event.type == pygame.KEYDOWN:
+                                                            if event.key == K_DOWN:
+                                                                journalistCount -= 1
+                                                            elif event.key == K_UP:
+                                                                journalistCount += 1
+                                                            elif event.key == K_RETURN:
+                                                                pygame.key.stop_text_input()
+                                                                wait_for_key == False
+                                                                wait_for_input == False
+                                                                chargeAction = True
+                                                                return copCount, journalistCount, chargeAction
+                                                        else:
+                                                            drawBoard(board, pieces)
+                                                            countBox = BIGFONT.render(str(journalistCount), True, WHITE, BLACK)
+                                                            countBoxRect = countBox.get_rect()
+                                                            countBoxRect = pygame.Rect(mousex, mousey, countBoxRect[2],countBoxRect[3])
+                                                            DISPLAYSURF.blit(countBox, countBoxRect)
+                                                            MAINCLOCK.tick(FPS)
+                                                            pygame.display.update()
+
+
+                                    wait_for_selection = False
+
+                elif cop1 in pieces[x][y] or cop2 in pieces[x][y]:
+                    for piece in pieces[x][y]:
+                        #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
+                        if piece.player == player:
+                            pygame.key.start_text_input()
+                            while wait_for_key == True:
+                                for event in pygame.event.get():
+
+                                    if event.type == pygame.KEYDOWN:
+                                        if event.key == K_DOWN:
+                                            copCount -= 1
+                                        elif event.key == K_UP:
+                                            copCount += 1
+                                        elif event.key == K_RETURN:
+                                            pygame.key.stop_text_input()
+                                            wait_for_key == False
+                                            wait_for_input == False
+                                            chargeAction = True
+                                            return copCount, journalistCount, chargeAction
+                                    else:
+                                        drawBoard(board, pieces)
+                                        countBox = BIGFONT.render(str(copCount), True, WHITE, BLACK)
+                                        countBoxRect = countBox.get_rect()
+                                        countBoxRect = pygame.Rect(mousex, mousey, countBoxRect[2],countBoxRect[3])
+                                        DISPLAYSURF.blit(countBox, countBoxRect)
+                                        MAINCLOCK.tick(FPS)
+                                        pygame.display.update()
+
+                elif journalist in pieces[x][y]:
+                    for piece in pieces[x][y]:
+                        #if both journalist and cop then pop up menu "bribe journalist or cop?, take inputs"
+                        if piece.player == player:
+                            pygame.key.start_text_input()
+                            while wait_for_key == True:
+                                for event in pygame.event.get():
+
+                                    if event.type == pygame.KEYDOWN:
+                                        if event.key == K_DOWN:
+                                            journalistCount -= 1
+                                        elif event.key == K_UP:
+                                            journalistCount += 1
+                                        elif event.key == K_RETURN:
+                                            pygame.key.stop_text_input()
+                                            wait_for_key == False
+                                            wait_for_input == False
+                                            chargeAction = True
+                                            return copCount, journalistCount, chargeAction
+                                    else:
+                                        drawBoard(board, pieces)
+                                        countBox = BIGFONT.render(str(journalistCount), True, WHITE, BLACK)
+                                        countBoxRect = countBox.get_rect()
+                                        countBoxRect = pygame.Rect(mousex, mousey, countBoxRect[2],countBoxRect[3])
+                                        DISPLAYSURF.blit(countBox, countBoxRect)
+                                        MAINCLOCK.tick(FPS)
+                                        pygame.display.update()
+                                        #wait_for_key = False
+                            #pop up input, user types in number, send input to bribe bank 
+                        #elif journalist flag true do same
+                        #if neither, then return to action menu, dont get charged an action 
+                            #if both true choose 
+                
                 else:
                     drawBoard(board, pieces)
                     pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
@@ -864,8 +1014,7 @@ def bribe(player, board, pieces):
                     pygame.display.update()
                     time.sleep(1)
                     wait_for_input = False
-                    break
-    print("bribe")
+                    return count, chargeAction
     
 def hit():
     print("hit")
@@ -882,7 +1031,7 @@ def copMove(board,pieces):
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
             for piece in pieces[x][y]:
-                if piece.player == "cop" and copcount <= 1:
+                if (piece.player == "cop" or piece.player == "journalist") and copcount <= 2:
                     while isOnBoard(x + delta_x, y + delta_y) != True:
                         delta_x = random.choice((-1,0,1))
                         delta_y = random.choice((-1,0,1))
@@ -891,7 +1040,6 @@ def copMove(board,pieces):
                     delta_x = 200
                     delta_y = 200
                     copcount += 1
-                    print(copcount)
                     drawBoard(board, pieces)
                     MAINCLOCK.tick(FPS)
                     pygame.display.update()
