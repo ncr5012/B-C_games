@@ -7,7 +7,7 @@
 # Your Own Computer Games with Python", chapter 15:
 #   http://inventwithpython.com/chapter15.html
 
-import random, sys, pygame, time, copy, pygame_menu
+import random, sys, pygame, time, copy, pygame_menu, numpy
 from pygame.locals import *
 
 FPS = 10 # frames per second to update the screen
@@ -107,7 +107,7 @@ HINTCOLOR = BROWN
 
 
 def main():
-    global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE, players, player_bank, cop_bribe_bank, journalist_bribe_bank, no_piece, player11, player12, player13, player21, player22, player23, player31, player32, player33, player41, player42, player43, cop1, cop2, journalist
+    global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE, players, player_bank, cop_bribe_bank, journalist_bribe_bank, election_bank, no_piece, player11, player12, player13, player21, player22, player23, player31, player32, player33, player41, player42, player43, cop1, cop2, journalist
     pygame.init()
     MAINCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
@@ -135,6 +135,7 @@ def main():
     player_bank = [0,0,0,0]
     cop_bribe_bank = [0,0,0,0]
     journalist_bribe_bank = [0,0,0,0]
+    election_bank = [0,0,0,0]
 
     no_piece = no_piece_class( )
     player11 = madeMan(BLACK, players[0])
@@ -212,6 +213,7 @@ def runGame():
     moveWarningRect = moveWarning.get_rect()
 
     action_count = 0
+    round_count = 5
 
 
     while True: # main game loop
@@ -281,6 +283,12 @@ def runGame():
                                             copMove(mainBoard,pieces)
                                             turn = players[0]
                                             player_idx = 0
+                                            round_count += 1
+                                            if round_count >= 5:
+                                                print("elections!")
+                                                election_bank = election(mainBoard, pieces)    
+                                                print(election_bank)                                                   
+                                                round_count = 0
 
                                         action_count = 0
                                         break
@@ -1044,7 +1052,98 @@ def copMove(board,pieces):
                     MAINCLOCK.tick(FPS)
                     pygame.display.update()
 
+def election(mainBoard, pieces):
+
+    MENUWIDTH = WINDOWWIDTH / 6
+    MENUHEIGHT = WINDOWHEIGHT / 3
+    BUTTONWIDTH = MENUWIDTH / 1.2
+    BUTTONHEIGHT = MENUHEIGHT / 8
     
+    
+    
+    #Width and height do not appear to change anything in actionmenurect but i left them just in case
+    eMenuRect = pygame.Rect(100,100,MENUWIDTH,MENUHEIGHT)
+    eMenuSurf = pygame.Surface((MENUWIDTH, MENUHEIGHT))
+    pygame.draw.rect(eMenuSurf, WHITE, eMenuSurf.get_rect())
+    player1Button = BIGFONT.render('Player 1', True, WHITE, BLACK)
+    player1ButtonRect = player1Button.get_rect()
+    player2Button = BIGFONT.render('Player 2', True, WHITE, BLACK)
+    player2ButtonRect = player2Button.get_rect()
+    player3Button = BIGFONT.render('Player 3', True, WHITE, BLACK)
+    player3ButtonRect = player3Button.get_rect()
+    player4Button = BIGFONT.render('Player 4', True, WHITE, BLACK)
+    player4ButtonRect = player4Button.get_rect()
+    player_eidx = 0
+    popular_opinion = [0,0,0,0]
+    vote_bank = [0,0,0,0]
+    election_bank = [0,0,0,0]
+    num_votes = 0
+    
+    while num_votes >= 3:  
+        drawBoard(mainBoard, pieces)
+        DISPLAYSURF.blit(eMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+        player1ButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, player1ButtonRect[2],player1ButtonRect[3])
+        player2ButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 115, player2ButtonRect[2],player2ButtonRect[3])
+        player3ButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 80, player3ButtonRect[2],player3ButtonRect[3])
+        player4ButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 45, player4ButtonRect[2],player4ButtonRect[3])
+        DISPLAYSURF.blit(player1Button, player1ButtonRect)
+        DISPLAYSURF.blit(player2Button, player2ButtonRect)
+        DISPLAYSURF.blit(player3Button, player3ButtonRect)
+        DISPLAYSURF.blit(player4Button, player4ButtonRect)
+        MAINCLOCK.tick(FPS)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            
+            #Action menu loop
+            if event.type == MOUSEBUTTONUP:
+
+                mousex, mousey = event.pos
+                if player1ButtonRect.collidepoint((mousex,mousey)):
+                    #change to a seperate function, players, board, pieces
+                    print("vote for player 1")
+                    vote_bank[0] =+ 1
+                    num_votes += 1
+                if player2ButtonRect.collidepoint((mousex,mousey)):
+                    #change to a seperate function, players, board, pieces
+                    print("vote for player 2")
+                    vote_bank[1] =+ 1
+                    num_votes += 1
+                if player3ButtonRect.collidepoint((mousex,mousey)):
+                    #change to a seperate function, players, board, pieces
+                    print("vote for player 3")
+                    vote_bank[2] =+ 1
+                    num_votes += 1
+                if player4ButtonRect.collidepoint((mousex,mousey)):
+                    #change to a seperate function, players, board, pieces
+                    print("vote for player 4")
+                    vote_bank[3] =+ 1
+                    num_votes += 1
+                break
+                
+
+    total_j = sum(journalist_bribe_bank)
+    i=0
+    for player in journalist_bribe_bank:
+        player_popular_opinion = player/total_j
+        if player_popular_opinion >= .2:
+            popular_opinion[i] = 1
+        elif player_popular_opinion >= .4:
+            popular_opinion[i] = 2
+        elif player_popular_opinion >= .6:
+            popular_opinion[i] = 3
+        elif player_popular_opinion >= .8:
+            popular_opinion[i] = 4
+        else:
+            popular_opinion[i] = 0
+        i+=1
+    election_bank = numpy.add(vote_bank + popular_opinion)
+    for player in election_bank:
+        player_eidx +=1
+        if player >= 5:
+            print("player " + str(player_eidx) + " wins!")
+
+    return election_bank
 
 if __name__ == '__main__':
     main()
