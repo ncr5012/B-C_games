@@ -137,7 +137,7 @@ def main():
     journalist_bribe_bank = [0,0,0,0]
     election_bank = [0,0,0,0]
     jail = [0,0,0,0]
-    recruits = [0,0,0,0]
+    recruits = []
     rat = [0,0,0,0]
 
     no_piece = no_piece_class( )
@@ -1072,8 +1072,16 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
     countBoxRect = countBox.get_rect()
     destiny = random.random()
     text_value = None
+
+    opponent_pieces = []
+    targets = []
+    for p in players:
+        if p != player:
+            opponent_pieces.append(p)
+
+
     wait_for_input = True
-    wait_for_key = True
+    wait_for_selection = True
     drawBoard(board, pieces)
     MAINCLOCK.tick(FPS)
     pygame.display.update()
@@ -1082,6 +1090,10 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
             if event.type == MOUSEBUTTONUP:
                 mousex, mousey = event.pos
                 x,y = getSpaceClicked(mousex, mousey)
+                for piece in pieces[x][y]:
+                    if piece.player in opponent_pieces:
+                        targets.append(piece)
+
                 if (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and journalist_piece in pieces[x][y]:
                     while wait_for_selection == True:  
                             drawBoard(board, pieces)
@@ -1118,7 +1130,7 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                                             for piece in pieces[x][y]:
                                                 if piece.player == player:
                                                     pieces[x][y].remove(piece)
-                                                    recruits[player_idx] += 1
+                                                    recruits.append(player.player)
                                                     chargeAction = True
                                                     return jail, recruits, chargeAction, copRegen, journalistRegen
                                         if destiny >= 0 and destiny <.4:
@@ -1142,7 +1154,7 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                                             for piece in pieces[x][y]:
                                                 if piece.player == player:
                                                     pieces[x][y].remove(piece)
-                                                    recruits[player_idx] += 1
+                                                    recruits.append(player.player)
                                                     journalist_bribe_bank[player_idx] -= 10
                                                     chargeAction = True
                                                     return jail, recruits, chargeAction, copRegen, journalistRegen
@@ -1186,7 +1198,7 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                         for piece in pieces[x][y]:
                             if piece.player == player:
                                 pieces[x][y].remove(piece)
-                                recruits[player_idx] += 1
+                                recruits.append(piece)
                                 chargeAction = True
                                 return jail, recruits, chargeAction, copRegen, journalistRegen
                     if destiny >= 0 and destiny <.4:
@@ -1211,7 +1223,7 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                         for piece in pieces[x][y]:
                             if piece.player == player:
                                 pieces[x][y].remove(piece)
-                                recruits[player_idx] += 1
+                                recruits.append(piece)
                                 journalist_bribe_bank[player_idx] -= 10
                                 chargeAction = True
                                 return jail, recruits, chargeAction, copRegen, journalistRegen
@@ -1223,6 +1235,58 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                                 jail[player_idx] += 1
                                 chargeAction = True
                                 return jail, recruits, chargeAction, copRegen, journalistRegen
+                
+                elif targets:
+                    tgtButton = []
+                    tgtButtonRect = []
+                    while wait_for_selection == True:  
+                        for tgt in enumerate(targets):
+                            tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
+                            tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
+                            drawBoard(board, pieces)
+                            DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                            tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
+                            DISPLAYSURF.blit(tgtButton[tgt[0]], tgtButtonRect[tgt[0]])
+                            MAINCLOCK.tick(FPS)
+                            pygame.display.update()
+
+                        for event in pygame.event.get():
+                            
+                            #Action menu loop
+                            if event.type == MOUSEBUTTONUP:
+
+                                mousex, mousey = event.pos
+
+                                for tgt in enumerate(targets):
+                                    if tgtButtonRect[tgt[0]].collidepoint((mousex,mousey)):
+                                        if destiny >= .7:
+                                            print(str(player) + "sucessfully hit " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == tgt[1].player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= .4 and destiny < .7:
+                                            print(str(player) + " got shot down by " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= 0 and destiny < .4:
+                                            print("HEADLINE: Cops arrest gangster for attempted murder")
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    jail[player_idx] += 1
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+
                 
                 else:
                     drawBoard(board, pieces)
