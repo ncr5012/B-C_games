@@ -1093,8 +1093,146 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                 for piece in pieces[x][y]:
                     if piece.player in opponent_pieces:
                         targets.append(piece)
+                print("targets " + str(targets))  
+                print("bool targets" + str(bool(targets)))
+                if (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and journalist_piece in pieces[x][y] and bool(targets) == True:
+                    print("test ")
+                    tgtButton = []
+                    tgtButtonRect = []
+                    for tgt in enumerate(targets):
+                        tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
+                        tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
+                        tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
+                    while wait_for_selection == True:  
+                        drawBoard(board, pieces)
+                        copButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 40, copButtonRect[2],copButtonRect[3])
+                        journalistButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 70, journalistButtonRect[2],journalistButtonRect[3])
+                        DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                        DISPLAYSURF.blit(copButton, copButtonRect)
+                        DISPLAYSURF.blit(journalistButton, journalistButtonRect)
+                        if len(tgtButton) == 1:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                        elif len(tgtButton) == 2:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                        elif len(tgtButton) == 3:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                            DISPLAYSURF.blit(tgtButton[2], tgtButtonRect[2])
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
 
-                if (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and journalist_piece in pieces[x][y]:
+                        for event in pygame.event.get():
+                            
+                            #Action menu loop
+                            if event.type == MOUSEBUTTONUP:
+
+                                mousex, mousey = event.pos
+
+                                if copButtonRect.collidepoint((mousex,mousey)):
+                                    if destiny >= .7:
+                                        print("hit successful")
+                                        remove_counter = False
+                                        if cop1 in pieces[x][y] and remove_counter == False:
+                                            pieces[x][y].remove(cop1)
+                                            remove_counter = True
+                                            cop_regen = 1
+                                        if cop2 in pieces[x][y] and remove_counter == False:
+                                            pieces[x][y].remove(cop2)
+                                            remove_counter = True
+                                            cop_regen = 2
+                                        chargeAction = True
+                                        return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= .4 and destiny <.7:
+                                        print("HEADLINE: Cops shoot down gangster at distllery ")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                recruits.append(player.player)
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= 0 and destiny <.4:
+                                        print("HEADLINE: Cops arrest gangster for attempted murder")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                jail[player_idx] += 1
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                elif journalistButtonRect.collidepoint((mousex,mousey)):
+                                    if destiny >= .7:
+                                        print("hit successful")
+                                        pieces[x][y].remove(journalist)
+                                        journalist_regen = True
+                                        chargeAction = True
+                                        return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= .4 and destiny <.7:
+                                        print("HEADLINE: nearly-assasinated journalist begins campaign against would be killers")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                recruits.append(player.player)
+                                                journalist_bribe_bank[player_idx] -= 10
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= 0 and destiny <.4:
+                                        print("HEADLINE: Cops arrest gangster for attempted murder")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                jail[player_idx] += 1
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                for tgt in enumerate(targets):
+                                    if tgtButtonRect[tgt[0]].collidepoint((mousex,mousey)):
+                                        if destiny >= .7:
+                                            print(str(player) + "sucessfully hit " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == tgt[1].player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= .4 and destiny < .7:
+                                            print(str(player) + " got shot down by " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= 0 and destiny < .4:
+                                            print("HEADLINE: Cops arrest gangster for attempted murder")
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    jail[player_idx] += 1
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    else: 
+                                        drawBoard(board, pieces)
+                                        copButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 40, copButtonRect[2],copButtonRect[3])
+                                        journalistButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 70, journalistButtonRect[2],journalistButtonRect[3])
+                                        DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                                        DISPLAYSURF.blit(copButton, copButtonRect)
+                                        DISPLAYSURF.blit(journalistButton, journalistButtonRect)
+                                        if len(tgtButton) == 1:
+                                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                                        elif len(tgtButton) == 2:
+                                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                                        elif len(tgtButton) == 3:
+                                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                                            DISPLAYSURF.blit(tgtButton[2], tgtButtonRect[2])
+                                        MAINCLOCK.tick(FPS)
+                                        pygame.display.update()
+
+                elif (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and journalist_piece in pieces[x][y]:
                     while wait_for_selection == True:  
                             drawBoard(board, pieces)
                             DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
@@ -1178,6 +1316,100 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                                         MAINCLOCK.tick(FPS)
                                         pygame.display.update()
 
+                elif (cop1 in pieces[x][y] or cop2 in pieces[x][y]) and bool(targets) == True:
+                    tgtButton = []
+                    tgtButtonRect = []
+                    for tgt in enumerate(targets):
+                        tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
+                        tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
+                        tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
+                    while wait_for_selection == True:  
+                        drawBoard(board, pieces)
+                        copButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 40, copButtonRect[2],copButtonRect[3])
+                        DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                        DISPLAYSURF.blit(copButton, copButtonRect)
+                        if len(tgtButton) == 1:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                        elif len(tgtButton) == 2:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                        elif len(tgtButton) == 3:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                            DISPLAYSURF.blit(tgtButton[2], tgtButtonRect[2])
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
+
+                        for event in pygame.event.get():
+                            
+                            #Action menu loop
+                            if event.type == MOUSEBUTTONUP:
+
+                                mousex, mousey = event.pos
+
+                                if copButtonRect.collidepoint((mousex,mousey)):
+
+                                    if destiny >= .7:
+                                        print("hit successful")
+                                        remove_counter = False
+                                        if cop1 in pieces[x][y] and remove_counter == False:
+                                            pieces[x][y].remove(cop1)
+                                            remove_counter = True
+                                            cop_regen = 1
+                                        if cop2 in pieces[x][y] and remove_counter == False:
+                                            pieces[x][y].remove(cop2)
+                                            remove_counter = True
+                                            cop_regen = 2
+                                        chargeAction = True
+                                        return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    elif destiny >= .4 and destiny <.7:
+                                        print("HEADLINE: Cops shoot down gangster at distllery ")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                recruits.append(piece)
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    elif destiny >= 0 and destiny <.4:
+                                        print("HEADLINE: Cops arrest gangster for attempted murder")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                jail[player_idx] += 1
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                for tgt in enumerate(targets):
+                                    if tgtButtonRect[tgt[0]].collidepoint((mousex,mousey)):
+                                        if destiny >= .7:
+                                            print(str(player) + "sucessfully hit " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == tgt[1].player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= .4 and destiny < .7:
+                                            print(str(player) + " got shot down by " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= 0 and destiny < .4:
+                                            print("HEADLINE: Cops arrest gangster for attempted murder")
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    jail[player_idx] += 1
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+
+
                 elif cop1 in pieces[x][y] or cop2 in pieces[x][y]:
 
                     if destiny >= .7:
@@ -1211,6 +1443,91 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                                 return jail, recruits, chargeAction, copRegen, journalistRegen
 
                 # Need entire elif loop for players hitting other players - cops always have 40% of arrest if sharing same space, informants have hidden cop effects
+                elif journalist in pieces[x][y] and bool(targets) == True:
+                    tgtButton = []
+                    tgtButtonRect = []
+                    for tgt in enumerate(targets):
+                        tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
+                        tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
+                        tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
+                    while wait_for_selection == True:  
+                        drawBoard(board, pieces)
+                        journalistButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 40, journalistButtonRect[2],journalistButtonRect[3])
+                        DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                        DISPLAYSURF.blit(journalistButton, journalistButtonRect)
+                        if len(tgtButton) == 1:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                        elif len(tgtButton) == 2:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                        elif len(tgtButton) == 3:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                            DISPLAYSURF.blit(tgtButton[2], tgtButtonRect[2])
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
+
+                        for event in pygame.event.get():
+                                
+                            #Action menu loop
+                            if event.type == MOUSEBUTTONUP:
+
+                                mousex, mousey = event.pos
+
+                                if journalistButtonRect.collidepoint((mousex,mousey)):
+                                    if destiny >= .7:
+                                        print("hit successful")
+                                        pieces[x][y].remove(journalist)
+                                        journalist_regen = True
+                                        chargeAction = True
+                                        return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= .4 and destiny <.7:
+                                        print("HEADLINE: nearly-assasinated journalist begins campaign against would be killers")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                recruits.append(piece)
+                                                journalist_bribe_bank[player_idx] -= 10
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+                                    if destiny >= 0 and destiny <.4:
+                                        print("HEADLINE: Cops arrest gangster for attempted murder")
+                                        for piece in pieces[x][y]:
+                                            if piece.player == player:
+                                                pieces[x][y].remove(piece)
+                                                jail[player_idx] += 1
+                                                chargeAction = True
+                                                return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                for tgt in enumerate(targets):
+                                    if tgtButtonRect[tgt[0]].collidepoint((mousex,mousey)):
+                                        if destiny >= .7:
+                                            print(str(player) + "sucessfully hit " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == tgt[1].player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= .4 and destiny < .7:
+                                            print(str(player) + " got shot down by " + str(tgt[1].player))
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    recruits.append(piece)
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
+                                        elif destiny >= 0 and destiny < .4:
+                                            print("HEADLINE: Cops arrest gangster for attempted murder")
+                                            for piece in pieces[x][y]:
+                                                if piece.player == player:
+                                                    pieces[x][y].remove(piece)
+                                                    jail[player_idx] += 1
+                                                    chargeAction = True
+                                                    return jail, recruits, chargeAction, copRegen, journalistRegen
+
                 elif journalist in pieces[x][y]:
                     if destiny >= .7:
                         print("hit successful")
@@ -1239,16 +1556,25 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                 elif targets:
                     tgtButton = []
                     tgtButtonRect = []
+                    for tgt in enumerate(targets):
+                        tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
+                        tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
+                        tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
                     while wait_for_selection == True:  
-                        for tgt in enumerate(targets):
-                            tgtButton.append(BIGFONT.render(tgt[1].player, True, WHITE, BLACK))
-                            tgtButtonRect.append(tgtButton[tgt[0]].get_rect())
-                            drawBoard(board, pieces)
-                            DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
-                            tgtButtonRect[tgt[0]] = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - (150 - tgt[0]*40), tgtButtonRect[tgt[0]][2],tgtButtonRect[tgt[0]][3])
-                            DISPLAYSURF.blit(tgtButton[tgt[0]], tgtButtonRect[tgt[0]])
-                            MAINCLOCK.tick(FPS)
-                            pygame.display.update()
+                        drawBoard(board, pieces)
+                        DISPLAYSURF.blit(cjMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                        if len(tgtButton) == 1:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                        elif len(tgtButton) == 2:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                        elif len(tgtButton) == 3:
+                            DISPLAYSURF.blit(tgtButton[0], tgtButtonRect[0])
+                            DISPLAYSURF.blit(tgtButton[1], tgtButtonRect[1])
+                            DISPLAYSURF.blit(tgtButton[2], tgtButtonRect[2])
+                        #time.sleep(1)
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
 
                         for event in pygame.event.get():
                             
