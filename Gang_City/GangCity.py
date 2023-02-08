@@ -238,6 +238,8 @@ def runGame():
                     if event.type == MOUSEBUTTONUP and event.button == 3: 
                         wait_for_selection = True
                         mousex, mousey = event.pos
+                        space_clickedx = mousex
+                        space_clickedy = mousey
                         while wait_for_selection == True:  
                             drawBoard(mainBoard, pieces)
                             DISPLAYSURF.blit(actionMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
@@ -276,6 +278,7 @@ def runGame():
                                         if chargeAction == True:
                                             action_count += 1 
                                     elif jobButtonRect.collidepoint( (mousex,mousey)):
+                                        job(turn, mainBoard, pieces, space_clickedx, space_clickedy)
                                         action_count += 1 
 
                                     wait_for_selection = False
@@ -1624,8 +1627,86 @@ def hit(player, player_idx, board, pieces, copRegen, journalistRegen):
                     wait_for_input = False
                     return jail, recruits, chargeAction, copRegen, journalistRegen
 
-def spaceaction():
-    print("doaction")
+def job(player, board, pieces, mousex, mousey):
+
+    x,y = getSpaceClicked(mousex, mousey)
+    destiny = random.random()
+    copFlag = copCheck(x,y, pieces)
+    result = None
+    chargeAction = False
+
+    if copFlag == True:
+        if destiny >= .7:
+            for piece in pieces[x][y]:
+                if board[x][y] == SPEAK_EASY and piece.player == player:
+                    player_bank[players.index(player)] += 4
+
+                elif board[x][y] == LOAN_SHARK and piece.player == player:
+
+                    player_bank[players.index(player)] += 3
+            
+                elif board[x][y] == PAWN_SHOP and piece.player == player:
+                    player_bank[players.index(player)] += 2
+
+                elif board[x][y] == MOM_POP and piece.player == player:
+                    player_bank[players.index(player)] += 1
+
+                elif board[x][y] == BANK and piece.player == player:
+                    player_bank[players.index(player)] += 8
+
+                elif board[x][y] ==FINANCIAL_DISTRICT and piece.player == player:
+                    player_bank[players.index(player)] += 7
+
+                elif board[x][y] == DISTILLERY and piece.player == player:
+                    player_bank[players.index(player)] += 6
+
+                elif board[x][y] == RACE_TRACK and piece.player == player:
+                    player_bank[players.index(player)] += 5
+                chargeAction = True
+                print("Successful job")
+                return jail, chargeAction
+        elif destiny < .7:
+            print("HEADLINE: Cops catch criminal in the act")
+            for piece in pieces[x][y]:
+                if piece.player == player:
+                    pieces[x][y].remove(piece)
+                    jail[players.index(player)] += 1
+                    drawBoard(board, pieces)
+                    MAINCLOCK.tick(FPS)
+                    pygame.display.update()
+                    chargeAction = True
+                    return jail, chargeAction
+
+    if copFlag == False:
+        for piece in pieces[x][y]:
+            print("successfull job")
+            if board[x][y] == SPEAK_EASY and piece.player == player:
+                player_bank[players.index(player)] += 4
+
+            elif board[x][y] == LOAN_SHARK and piece.player == player:
+
+                player_bank[players.index(player)] += 3
+        
+            elif board[x][y] == PAWN_SHOP and piece.player == player:
+                player_bank[players.index(player)] += 2
+
+            elif board[x][y] == MOM_POP and piece.player == player:
+                player_bank[players.index(player)] += 1
+
+            elif board[x][y] == BANK and piece.player == player:
+                player_bank[players.index(player)] += 8
+
+            elif board[x][y] ==FINANCIAL_DISTRICT and piece.player == player:
+                player_bank[players.index(player)] += 7
+
+            elif board[x][y] == DISTILLERY and piece.player == player:
+                player_bank[players.index(player)] += 6
+
+            elif board[x][y] == RACE_TRACK and piece.player == player:
+                player_bank[players.index(player)] += 5
+            chargeAction = True
+            return jail, chargeAction
+
 
 def copMove(board,pieces):
     
