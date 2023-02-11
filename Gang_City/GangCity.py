@@ -59,7 +59,7 @@ class madeMan(pygame.sprite.Sprite):
         self.colorim.fill(color)
         self.surf.blit(self.colorim, (0,0), special_flags = pygame.BLEND_RGBA_MULT)
         self.rect = self.surf.get_rect()
-        self.informant = False
+        self.rat = False
         self.player = player
 
 class cop_piece(pygame.sprite.Sprite):
@@ -139,13 +139,18 @@ def main():
     jail = [0,0,0,0]
     rat = [0,0,0,0]
 
-    no_piece = no_piece_class( )
+
+    no_piece = no_piece_class()
     player11 = madeMan(BLACK, players[0])
     player12 = madeMan(BLACK, players[0])
     player13 = madeMan(BLACK, players[0])
+    rat1 = madeMan(BLACK,players[0])
+    rat1.rat = True
     player21 = madeMan(BRIGHTBLUE, players[1])
     player22 = madeMan(BRIGHTBLUE, players[1])
     player23 = madeMan(BRIGHTBLUE, players[1])
+    rat2 = madeMan((BRIGHTBLUE),players[1])
+    rat2.rat = True
     #player31 = madeMan(RED, players[2])
     #player32 = madeMan(RED, players[2])
    #player33 = madeMan(RED, players[2])
@@ -219,6 +224,10 @@ def runGame():
     copRegen = 0
     journalistRegen = False
 
+    election_bank = [0,0,0,0]
+    jail = [0,0,0,0]
+    rat = [0,0,0,0]
+
 
     while True: # main game loop
         # Keep looping for player and computer's turns.
@@ -228,7 +237,6 @@ def runGame():
             # Player's turn:
             #getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile, player3Tile, player4Tile)
             getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
-            print(player_bank)
 
             while movexy == None:
                 # Keep looping until the player clicks on a valid space.
@@ -239,104 +247,168 @@ def runGame():
                 bank2Banner = BIGFONT.render(str(player_bank[1]), True, WHITE, BLACK)
                 bank3Banner = BIGFONT.render(str(player_bank[2]), True, WHITE, BLACK)
                 bank4Banner = BIGFONT.render(str(player_bank[3]), True, WHITE, BLACK)
+                ebankBanner = BIGFONT.render("Polls", True, WHITE, BLACK)
+                ebank1Banner = BIGFONT.render(str(election_bank[0]), True, WHITE, BLACK)
+                ebank2Banner = BIGFONT.render(str(election_bank[1]), True, WHITE, BLACK)
+                ebank3Banner = BIGFONT.render(str(election_bank[2]), True, WHITE, BLACK)
+                ebank4Banner = BIGFONT.render(str(election_bank[3]), True, WHITE, BLACK)
+                bailBanner = BIGFONT.render("Bail out", True, WHITE, BLACK)
                 turnBannerRect = turnBanner.get_rect()
                 bankBannerRect = bankBanner.get_rect()
                 bank1BannerRect = bank1Banner.get_rect()
                 bank2BannerRect = bank2Banner.get_rect()
                 bank3BannerRect = bank3Banner.get_rect()
                 bank4BannerRect = bank4Banner.get_rect()
+                ebankBannerRect = ebankBanner.get_rect()
+                ebank1BannerRect = ebank1Banner.get_rect()
+                ebank2BannerRect = ebank2Banner.get_rect()
+                ebank3BannerRect = ebank3Banner.get_rect()
+                ebank4BannerRect = ebank4Banner.get_rect()
+                bailBannerRect = bailBanner.get_rect()
                 turnBannerRect = pygame.Rect(WINDOWWIDTH/3, 0, turnBannerRect[2],turnBannerRect[3])
                 bankBannerRect = pygame.Rect(0, 0, bankBannerRect[2],bankBannerRect[3])
                 bank1BannerRect = pygame.Rect(30, 30, bank1BannerRect[2],bank1BannerRect[3])
                 bank2BannerRect = pygame.Rect(30, 60, bank2BannerRect[2],bank2BannerRect[3])
                 bank3BannerRect = pygame.Rect(30, 90, bank3BannerRect[2],bank3BannerRect[3])
                 bank4BannerRect = pygame.Rect(30, 120, bank4BannerRect[2],bank4BannerRect[3])
+                ebankBannerRect = pygame.Rect(0, WINDOWHEIGHT-30, ebankBannerRect[2],ebankBannerRect[3])
+                ebank1BannerRect = pygame.Rect(30, WINDOWHEIGHT - 150, ebank1BannerRect[2],ebank1BannerRect[3])
+                ebank2BannerRect = pygame.Rect(30, WINDOWHEIGHT - 120, ebank2BannerRect[2],ebank2BannerRect[3])
+                ebank3BannerRect = pygame.Rect(30, WINDOWHEIGHT - 90, ebank3BannerRect[2],ebank3BannerRect[3])
+                ebank4BannerRect = pygame.Rect(30, WINDOWHEIGHT - 60, ebank4BannerRect[2],ebank4BannerRect[3])
+                bailBannerRect = pygame.Rect(WINDOWWIDTH - 80, WINDOWHEIGHT - 30, bailBannerRect[2],bailBannerRect[3])
                 DISPLAYSURF.blit(turnBanner, turnBannerRect)
                 DISPLAYSURF.blit(bankBanner, bankBannerRect)
                 DISPLAYSURF.blit(bank1Banner, bank1BannerRect)
                 DISPLAYSURF.blit(bank2Banner, bank2BannerRect)
                 DISPLAYSURF.blit(bank3Banner, bank3BannerRect)
                 DISPLAYSURF.blit(bank4Banner, bank4BannerRect)
+                DISPLAYSURF.blit(ebankBanner, ebankBannerRect)
+                DISPLAYSURF.blit(ebank1Banner, ebank1BannerRect)
+                DISPLAYSURF.blit(ebank2Banner, ebank2BannerRect)
+                DISPLAYSURF.blit(ebank3Banner, ebank3BannerRect)
+                DISPLAYSURF.blit(ebank4Banner, ebank4BannerRect)
+                DISPLAYSURF.blit(bailBanner, bailBannerRect)
                 MAINCLOCK.tick(FPS)
                 pygame.display.update()
                 checkForQuit()
                 for event in pygame.event.get(): # event handling loop
+
                     if event.type == MOUSEBUTTONUP and event.button == 3: 
-                        wait_for_selection = True
+                        drawBoard(mainBoard, pieces)
                         mousex, mousey = event.pos
-                        space_clickedx = mousex
-                        space_clickedy = mousey
-                        while wait_for_selection == True:  
-                            drawBoard(mainBoard, pieces)
-                            DISPLAYSURF.blit(actionMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
-                            moveButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, moveButtonRect[2],moveButtonRect[3])
-                            bribeButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 115, bribeButtonRect[2],bribeButtonRect[3])
-                            hitButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 80, hitButtonRect[2],hitButtonRect[3])
-                            jobButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 45, jobButtonRect[2],jobButtonRect[3])
-                            DISPLAYSURF.blit(moveButton, moveButtonRect)
-                            DISPLAYSURF.blit(bribeButton, bribeButtonRect)
-                            DISPLAYSURF.blit(hitButton, hitButtonRect)
-                            DISPLAYSURF.blit(jobButton, jobButtonRect)
-                            MAINCLOCK.tick(FPS)
-                            pygame.display.update()
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
+                        print(jail[player_idx])
+                        print(player_bank[player_idx])
+                        if bailBannerRect.collidepoint((mousex,mousey)) and jail[player_idx] >= 1 and player_bank[player_idx] >= 10:
+                            rat1 = madeMan(BLACK,players[0])
+                            rat1.rat = True
+                            rat2 = madeMan(BRIGHTBLUE,players[1])
+                            rat2.rat = True
+                            rat3 = madeMan(BLACK,players[2])
+                            rat3.rat = True
+                            rat4 = madeMan(BLACK,players[3])
+                            rat4.rat = True
+                            destiny = random.random()
+                            if destiny <.5:
+                                if turn == "player1":
+                                    pieces[0][0].append(rat1)
+                                elif turn == "player2":
+                                    pieces[4][0].append(rat2)
+                                elif turn == "player3":
+                                    pieces[0][4].append(rat3)
+                                elif turn == "player4":
+                                    pieces[4][4].append(rat4)
+                            elif destiny >=.5:
+                                if turn == "player1":
+                                    pieces[0][0].append(player11)
+                                elif turn == "player2":
+                                    pieces[4][0].append(player21)
+                                elif turn == "player3":
+                                    pieces[0][4].append(player31)
+                                elif turn == "player4":
+                                    pieces[4][4].append(player41)
+                            jail[player_idx] -= 1
+                            action_count += 1
+                        else:
+                            wait_for_selection = True
+                            mousex, mousey = event.pos
+                            space_clickedx = mousex
+                            space_clickedy = mousey
+                            while wait_for_selection == True:  
+                                drawBoard(mainBoard, pieces)
+                                DISPLAYSURF.blit(actionMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                                moveButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, moveButtonRect[2],moveButtonRect[3])
+                                bribeButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 115, bribeButtonRect[2],bribeButtonRect[3])
+                                hitButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 80, hitButtonRect[2],hitButtonRect[3])
+                                jobButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 45, jobButtonRect[2],jobButtonRect[3])
+                                DISPLAYSURF.blit(moveButton, moveButtonRect)
+                                DISPLAYSURF.blit(bribeButton, bribeButtonRect)
+                                DISPLAYSURF.blit(hitButton, hitButtonRect)
+                                DISPLAYSURF.blit(jobButton, jobButtonRect)
+                                MAINCLOCK.tick(FPS)
+                                pygame.display.update()
 
-                            for event in pygame.event.get():
-                                
-                                #Action menu loop
-                                if event.type == MOUSEBUTTONUP:
-                                    chargeAction = False
-                                    mousex, mousey = event.pos
-                                    if moveButtonRect.collidepoint((mousex,mousey)):
-                                        #change to a seperate function, players, board, pieces
-                                        move(turn, mainBoard, pieces)
-                                        action_count += 1
-                                    elif bribeButtonRect.collidepoint( (mousex,mousey)):
-                                        copCount, journalistCount, chargeAction = bribe(turn, mainBoard, pieces)
-                                        cop_bribe_bank[player_idx] += copCount
-                                        journalist_bribe_bank[player_idx] += journalistCount
-                                        player_bank[player_idx] -= (copCount + journalistCount)
-                                        print(cop_bribe_bank)
-                                        print(journalist_bribe_bank)
-                                        if chargeAction == True:
+                                for event in pygame.event.get():
+                                    
+                                    #Action menu loop
+                                    if event.type == MOUSEBUTTONUP:
+                                        chargeAction = False
+                                        mousex, mousey = event.pos
+                                        if moveButtonRect.collidepoint((mousex,mousey)):
+                                            #change to a seperate function, players, board, pieces
+                                            move(turn, mainBoard, pieces)
+                                            action_count += 1
+                                        elif bribeButtonRect.collidepoint( (mousex,mousey)):
+                                            copCount, journalistCount, chargeAction = bribe(turn, mainBoard, pieces)
+                                            cop_bribe_bank[player_idx] += copCount
+                                            journalist_bribe_bank[player_idx] += journalistCount
+                                            player_bank[player_idx] -= (copCount + journalistCount)
+                                            print(cop_bribe_bank)
+                                            print(journalist_bribe_bank)
+                                            if chargeAction == True:
+                                                action_count += 1 
+                                        elif hitButtonRect.collidepoint( (mousex,mousey)):
+                                            jail, chargeAction, copRegen, journalistRegen= hit(turn, player_idx, mainBoard, pieces, copRegen, journalistRegen)
+                                            if chargeAction == True:
+                                                action_count += 1 
+                                        elif jobButtonRect.collidepoint( (mousex,mousey)):
+                                            job(turn, mainBoard, pieces, space_clickedx, space_clickedy)
                                             action_count += 1 
-                                    elif hitButtonRect.collidepoint( (mousex,mousey)):
-                                        jail, chargeAction, copRegen, journalistRegen= hit(turn, player_idx, mainBoard, pieces, copRegen, journalistRegen)
-                                        if chargeAction == True:
-                                            action_count += 1 
-                                    elif jobButtonRect.collidepoint( (mousex,mousey)):
-                                        job(turn, mainBoard, pieces, space_clickedx, space_clickedy)
-                                        action_count += 1 
 
-                                    wait_for_selection = False
-                                    print("action_count" + str(action_count))
-                                    if action_count >= 2:
-                                        if player_idx < len(players) - 1:
-                                            turn = players[player_idx + 1]
-                                            player_idx += 1
-                                        else: 
-                                            getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
-                                            print(player_bank)
-                                            copMove(mainBoard,pieces)
-                                            turn = players[0]
-                                            player_idx = 0
-                                            round_count += 1
-                                            if round_count >= 5:
-                                                print("elections!")
-                                                election_bank = election(mainBoard, pieces)    
-                                                print(election_bank)
-                                                if journalist_regen == True:
-                                                    pieces[2][2].append(journalist)          
-                                                    journalist_regen = False          
-                                                if cop_regen == 1:
-                                                    pieces[2][2].append(cop1)
-                                                    cop_regen == 0
-                                                if cop_regen == 2:
-                                                    pieces[2][2].append(cop2)  
-                                                    cop_regen == 0                             
-                                                round_count = 0
+                                        wait_for_selection = False
+                                        print("action_count" + str(action_count))
+                                        if action_count >= 2:
+                                            if player_idx < len(players) - 1:
+                                                turn = players[player_idx + 1]
+                                                player_idx += 1
+                                            else: 
+                                                drawBoard(mainBoard, pieces)
+                                                MAINCLOCK.tick(FPS)
+                                                pygame.display.update()
+                                                getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
+                                                copMove(mainBoard,pieces)
+                                                turn = players[0]
+                                                player_idx = 0
+                                                round_count += 1
+                                                if round_count >= 5:
+                                                    print("elections!")
+                                                    election_bank = election(mainBoard, pieces)    
+                                                    print(election_bank)
+                                                    if journalist_regen == True:
+                                                        pieces[2][2].append(journalist)          
+                                                        journalist_regen = False          
+                                                    if cop_regen == 1:
+                                                        pieces[2][2].append(cop1)
+                                                        cop_regen == 0
+                                                    if cop_regen == 2:
+                                                        pieces[2][2].append(cop2)  
+                                                        cop_regen == 0                             
+                                                    round_count = 0
 
-                                        action_count = 0
-                                        break
+                                            action_count = 0
+                                            break
 
 
 
