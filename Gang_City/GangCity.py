@@ -61,6 +61,7 @@ class madeMan(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rat = False
         self.player = player
+        self.pc = "pc"
 
 class cop_piece(pygame.sprite.Sprite):
     def __init__(self, color):
@@ -72,6 +73,8 @@ class cop_piece(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.bribe = None
         self.player = "cop"
+        self.rat = False
+        self.pc = "npc"
 
 class journalist_piece(pygame.sprite.Sprite):
     def __init__(self, color):
@@ -83,11 +86,15 @@ class journalist_piece(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.bribe = None
         self.player = "journalist"
+        self.rat = False
+        self.pc = "npc"
 
 class no_piece_class(pygame.sprite.Sprite):
     def __init__(self):
         super(no_piece_class, self).__init__()
         self.player = None
+        self.rat = False
+        self.pc = "npc"
 
 # Amount of space on the left & right side (XMARGIN) or above and below
 # (YMARGIN) the game board, in pixels.
@@ -212,6 +219,8 @@ def runGame():
     hitButtonRect = hitButton.get_rect()
     jobButton = BIGFONT.render('Job', True, WHITE, BLACK)
     jobButtonRect = jobButton.get_rect()
+    bailButton = BIGFONT.render('Bail', True, WHITE, BLACK)
+    bailButtonRect = jobButton.get_rect()
 
     pieceWarning = BIGFONT.render('Choose your own piece', True, WHITE, BLACK)
     pieceWarningRect = pieceWarning.get_rect()
@@ -252,7 +261,11 @@ def runGame():
                 ebank2Banner = BIGFONT.render(str(election_bank[1]), True, WHITE, BLACK)
                 ebank3Banner = BIGFONT.render(str(election_bank[2]), True, WHITE, BLACK)
                 ebank4Banner = BIGFONT.render(str(election_bank[3]), True, WHITE, BLACK)
-                bailBanner = BIGFONT.render("Bail out", True, WHITE, BLACK)
+                jailBanner = BIGFONT.render("Jail", True, WHITE, BLACK)
+                jail1Banner = BIGFONT.render(str(jail[0]), True, WHITE, BLACK)
+                jail2Banner = BIGFONT.render(str(jail[1]), True, WHITE, BLACK)
+                jail3Banner = BIGFONT.render(str(jail[2]), True, WHITE, BLACK)
+                jail4Banner = BIGFONT.render(str(jail[3]), True, WHITE, BLACK)
                 turnBannerRect = turnBanner.get_rect()
                 bankBannerRect = bankBanner.get_rect()
                 bank1BannerRect = bank1Banner.get_rect()
@@ -264,19 +277,27 @@ def runGame():
                 ebank2BannerRect = ebank2Banner.get_rect()
                 ebank3BannerRect = ebank3Banner.get_rect()
                 ebank4BannerRect = ebank4Banner.get_rect()
-                bailBannerRect = bailBanner.get_rect()
+                jailBannerRect = jailBanner.get_rect()
+                jail1BannerRect = jail1Banner.get_rect()
+                jail2BannerRect = jail2Banner.get_rect()
+                jail3BannerRect = jail3Banner.get_rect()
+                jail4BannerRect = jail4Banner.get_rect()
                 turnBannerRect = pygame.Rect(WINDOWWIDTH/3, 0, turnBannerRect[2],turnBannerRect[3])
                 bankBannerRect = pygame.Rect(0, 0, bankBannerRect[2],bankBannerRect[3])
-                bank1BannerRect = pygame.Rect(30, 30, bank1BannerRect[2],bank1BannerRect[3])
-                bank2BannerRect = pygame.Rect(30, 60, bank2BannerRect[2],bank2BannerRect[3])
-                bank3BannerRect = pygame.Rect(30, 90, bank3BannerRect[2],bank3BannerRect[3])
-                bank4BannerRect = pygame.Rect(30, 120, bank4BannerRect[2],bank4BannerRect[3])
+                bank1BannerRect = pygame.Rect(20, 30, bank1BannerRect[2],bank1BannerRect[3])
+                bank2BannerRect = pygame.Rect(20, 60, bank2BannerRect[2],bank2BannerRect[3])
+                bank3BannerRect = pygame.Rect(20, 90, bank3BannerRect[2],bank3BannerRect[3])
+                bank4BannerRect = pygame.Rect(20, 120, bank4BannerRect[2],bank4BannerRect[3])
                 ebankBannerRect = pygame.Rect(0, WINDOWHEIGHT-30, ebankBannerRect[2],ebankBannerRect[3])
                 ebank1BannerRect = pygame.Rect(30, WINDOWHEIGHT - 150, ebank1BannerRect[2],ebank1BannerRect[3])
                 ebank2BannerRect = pygame.Rect(30, WINDOWHEIGHT - 120, ebank2BannerRect[2],ebank2BannerRect[3])
                 ebank3BannerRect = pygame.Rect(30, WINDOWHEIGHT - 90, ebank3BannerRect[2],ebank3BannerRect[3])
                 ebank4BannerRect = pygame.Rect(30, WINDOWHEIGHT - 60, ebank4BannerRect[2],ebank4BannerRect[3])
-                bailBannerRect = pygame.Rect(WINDOWWIDTH - 80, WINDOWHEIGHT - 30, bailBannerRect[2],bailBannerRect[3])
+                jailBannerRect = pygame.Rect(WINDOWWIDTH - 50, WINDOWHEIGHT - 30, jailBannerRect[2],jailBannerRect[3])
+                jail1BannerRect = pygame.Rect(WINDOWWIDTH - 50, WINDOWHEIGHT - 150, jail1BannerRect[2],jail1BannerRect[3])
+                jail2BannerRect = pygame.Rect(WINDOWWIDTH - 50, WINDOWHEIGHT - 120, jail2BannerRect[2],jail2BannerRect[3])
+                jail3BannerRect = pygame.Rect(WINDOWWIDTH - 50, WINDOWHEIGHT - 90, jail3BannerRect[2],jail3BannerRect[3])
+                jail4BannerRect = pygame.Rect(WINDOWWIDTH - 50, WINDOWHEIGHT - 60, jail4BannerRect[2],jail4BannerRect[3])
                 DISPLAYSURF.blit(turnBanner, turnBannerRect)
                 DISPLAYSURF.blit(bankBanner, bankBannerRect)
                 DISPLAYSURF.blit(bank1Banner, bank1BannerRect)
@@ -288,127 +309,103 @@ def runGame():
                 DISPLAYSURF.blit(ebank2Banner, ebank2BannerRect)
                 DISPLAYSURF.blit(ebank3Banner, ebank3BannerRect)
                 DISPLAYSURF.blit(ebank4Banner, ebank4BannerRect)
-                DISPLAYSURF.blit(bailBanner, bailBannerRect)
+                DISPLAYSURF.blit(jailBanner, jailBannerRect)
+                DISPLAYSURF.blit(jail1Banner, jail1BannerRect)
+                DISPLAYSURF.blit(jail2Banner, jail2BannerRect)
+                DISPLAYSURF.blit(jail3Banner, jail3BannerRect)
+                DISPLAYSURF.blit(jail4Banner, jail4BannerRect)
                 MAINCLOCK.tick(FPS)
                 pygame.display.update()
                 checkForQuit()
                 for event in pygame.event.get(): # event handling loop
 
                     if event.type == MOUSEBUTTONUP and event.button == 3: 
-                        drawBoard(mainBoard, pieces)
+                        wait_for_selection = True
                         mousex, mousey = event.pos
-                        MAINCLOCK.tick(FPS)
-                        pygame.display.update()
-                        print(jail[player_idx])
-                        print(player_bank[player_idx])
-                        if bailBannerRect.collidepoint((mousex,mousey)) and jail[player_idx] >= 1 and player_bank[player_idx] >= 10:
-                            rat1 = madeMan(BLACK,players[0])
-                            rat1.rat = True
-                            rat2 = madeMan(BRIGHTBLUE,players[1])
-                            rat2.rat = True
-                            rat3 = madeMan(BLACK,players[2])
-                            rat3.rat = True
-                            rat4 = madeMan(BLACK,players[3])
-                            rat4.rat = True
-                            destiny = random.random()
-                            if destiny <.5:
-                                if turn == "player1":
-                                    pieces[0][0].append(rat1)
-                                elif turn == "player2":
-                                    pieces[4][0].append(rat2)
-                                elif turn == "player3":
-                                    pieces[0][4].append(rat3)
-                                elif turn == "player4":
-                                    pieces[4][4].append(rat4)
-                            elif destiny >=.5:
-                                if turn == "player1":
-                                    pieces[0][0].append(player11)
-                                elif turn == "player2":
-                                    pieces[4][0].append(player21)
-                                elif turn == "player3":
-                                    pieces[0][4].append(player31)
-                                elif turn == "player4":
-                                    pieces[4][4].append(player41)
-                            jail[player_idx] -= 1
-                            action_count += 1
-                        else:
-                            wait_for_selection = True
-                            mousex, mousey = event.pos
-                            space_clickedx = mousex
-                            space_clickedy = mousey
-                            while wait_for_selection == True:  
-                                drawBoard(mainBoard, pieces)
-                                DISPLAYSURF.blit(actionMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
-                                moveButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, moveButtonRect[2],moveButtonRect[3])
-                                bribeButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 115, bribeButtonRect[2],bribeButtonRect[3])
-                                hitButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 80, hitButtonRect[2],hitButtonRect[3])
-                                jobButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 45, jobButtonRect[2],jobButtonRect[3])
-                                DISPLAYSURF.blit(moveButton, moveButtonRect)
-                                DISPLAYSURF.blit(bribeButton, bribeButtonRect)
-                                DISPLAYSURF.blit(hitButton, hitButtonRect)
-                                DISPLAYSURF.blit(jobButton, jobButtonRect)
-                                MAINCLOCK.tick(FPS)
-                                pygame.display.update()
+                        space_clickedx = mousex
+                        space_clickedy = mousey
+                        while wait_for_selection == True:  
+                            drawBoard(mainBoard, pieces)
+                            DISPLAYSURF.blit(actionMenuSurf, (mousex,mousey,MENUWIDTH,MENUHEIGHT))
+                            moveButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 150, moveButtonRect[2],moveButtonRect[3])
+                            bribeButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 120, bribeButtonRect[2],bribeButtonRect[3])
+                            hitButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 90, hitButtonRect[2],hitButtonRect[3])
+                            jobButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 60, jobButtonRect[2],jobButtonRect[3])
+                            bailButtonRect = pygame.Rect(mousex + MENUWIDTH/6, mousey + MENUHEIGHT - 30, bailButtonRect[2],bailButtonRect[3])
+                            DISPLAYSURF.blit(moveButton, moveButtonRect)
+                            DISPLAYSURF.blit(bribeButton, bribeButtonRect)
+                            DISPLAYSURF.blit(hitButton, hitButtonRect)
+                            DISPLAYSURF.blit(jobButton, jobButtonRect)
+                            DISPLAYSURF.blit(bailButton, bailButtonRect)
+                            MAINCLOCK.tick(FPS)
+                            pygame.display.update()
 
-                                for event in pygame.event.get():
-                                    
-                                    #Action menu loop
-                                    if event.type == MOUSEBUTTONUP:
-                                        chargeAction = False
-                                        mousex, mousey = event.pos
-                                        if moveButtonRect.collidepoint((mousex,mousey)):
-                                            #change to a seperate function, players, board, pieces
-                                            move(turn, mainBoard, pieces)
-                                            action_count += 1
-                                        elif bribeButtonRect.collidepoint( (mousex,mousey)):
-                                            copCount, journalistCount, chargeAction = bribe(turn, mainBoard, pieces)
-                                            cop_bribe_bank[player_idx] += copCount
-                                            journalist_bribe_bank[player_idx] += journalistCount
-                                            player_bank[player_idx] -= (copCount + journalistCount)
-                                            print(cop_bribe_bank)
-                                            print(journalist_bribe_bank)
-                                            if chargeAction == True:
-                                                action_count += 1 
-                                        elif hitButtonRect.collidepoint( (mousex,mousey)):
-                                            jail, chargeAction, copRegen, journalistRegen= hit(turn, player_idx, mainBoard, pieces, copRegen, journalistRegen)
-                                            if chargeAction == True:
-                                                action_count += 1 
-                                        elif jobButtonRect.collidepoint( (mousex,mousey)):
-                                            job(turn, mainBoard, pieces, space_clickedx, space_clickedy)
+                            for event in pygame.event.get():
+                                
+                                #Action menu loop
+                                if event.type == MOUSEBUTTONUP:
+                                    chargeAction = False
+                                    mousex, mousey = event.pos
+                                    if moveButtonRect.collidepoint((mousex,mousey)):
+                                        #change to a seperate function, players, board, pieces
+                                        move(turn, mainBoard, pieces)
+                                        action_count += 1
+                                    elif bribeButtonRect.collidepoint( (mousex,mousey)):
+                                        copCount, journalistCount, chargeAction = bribe(turn, mainBoard, pieces)
+                                        cop_bribe_bank[player_idx] += copCount
+                                        journalist_bribe_bank[player_idx] += journalistCount
+                                        player_bank[player_idx] -= (copCount + journalistCount)
+                                        print(cop_bribe_bank)
+                                        print(journalist_bribe_bank)
+                                        if chargeAction == True:
                                             action_count += 1 
+                                    elif hitButtonRect.collidepoint( (mousex,mousey)):
+                                        jail, chargeAction, copRegen, journalistRegen= hit(turn, player_idx, mainBoard, pieces, copRegen, journalistRegen)
+                                        if chargeAction == True:
+                                            action_count += 1 
+                                    elif jobButtonRect.collidepoint( (mousex,mousey)):
+                                        job(turn, mainBoard, pieces, space_clickedx, space_clickedy)
+                                        action_count += 1 
+                                    elif bailButtonRect.collidepoint( (mousex,mousey)):
+                                        if jail[player_idx] >= 1 and player_bank[player_idx] >= 10:
+                                            bail(turn,pieces)
+                                            jail[player_idx] -= 1
+                                            action_count +=1
+                                        else:
+                                            continue
 
-                                        wait_for_selection = False
-                                        print("action_count" + str(action_count))
-                                        if action_count >= 2:
-                                            if player_idx < len(players) - 1:
-                                                turn = players[player_idx + 1]
-                                                player_idx += 1
-                                            else: 
-                                                drawBoard(mainBoard, pieces)
-                                                MAINCLOCK.tick(FPS)
-                                                pygame.display.update()
-                                                getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
-                                                copMove(mainBoard,pieces)
-                                                turn = players[0]
-                                                player_idx = 0
-                                                round_count += 1
-                                                if round_count >= 5:
-                                                    print("elections!")
-                                                    election_bank = election(mainBoard, pieces)    
-                                                    print(election_bank)
-                                                    if journalist_regen == True:
-                                                        pieces[2][2].append(journalist)          
-                                                        journalist_regen = False          
-                                                    if cop_regen == 1:
-                                                        pieces[2][2].append(cop1)
-                                                        cop_regen == 0
-                                                    if cop_regen == 2:
-                                                        pieces[2][2].append(cop2)  
-                                                        cop_regen == 0                             
-                                                    round_count = 0
+                                    wait_for_selection = False
+                                    print("action_count" + str(action_count))
+                                    if action_count >= 2:
+                                        if player_idx < len(players) - 1:
+                                            turn = players[player_idx + 1]
+                                            player_idx += 1
+                                        else: 
+                                            drawBoard(mainBoard, pieces)
+                                            MAINCLOCK.tick(FPS)
+                                            pygame.display.update()
+                                            getRevenues(mainBoard, pieces, players, player_bank, player1Tile, player2Tile)
+                                            copMove(mainBoard,pieces)
+                                            turn = players[0]
+                                            player_idx = 0
+                                            round_count += 1
+                                            if round_count >= 5:
+                                                print("elections!")
+                                                election_bank = election(mainBoard, pieces)    
+                                                print(election_bank)
+                                                if journalist_regen == True:
+                                                    pieces[2][2].append(journalist)          
+                                                    journalist_regen = False          
+                                                if cop_regen == 1:
+                                                    pieces[2][2].append(cop1)
+                                                    cop_regen == 0
+                                                if cop_regen == 2:
+                                                    pieces[2][2].append(cop2)  
+                                                    cop_regen == 0                             
+                                                round_count = 0
 
-                                            action_count = 0
-                                            break
+                                        action_count = 0
+                                        break
 
 
 
@@ -422,6 +419,10 @@ def getRevenues(board, pieces, players, player_bank, player1Tile, player2Tile):
     player_bank[1] += 1
     player_bank[2] += 1
     player_bank[3] += 1
+    pcCount = 0
+    lowSpace = 2
+    highSpace = 4
+    copDamping = 0.5
 
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
@@ -429,61 +430,88 @@ def getRevenues(board, pieces, players, player_bank, player1Tile, player2Tile):
             for player in players:
                 for piece in pieces[x][y]:
                     if board[x][y] == SPEAK_EASY and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 1
+                            player_bank[players.index(player)] += (lowSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += lowSpace/pcCount
 
                     elif board[x][y] == LOAN_SHARK and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 1
+                            player_bank[players.index(player)] += (lowSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += lowSpace/pcCount
                 
                     elif board[x][y] == PAWN_SHOP and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 1
+                            player_bank[players.index(player)] += (lowSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += lowSpace/pcCount
 
                     elif board[x][y] == MOM_POP and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += (lowSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 4
+                            player_bank[players.index(player)] += lowSpace/pcCount
 
                     elif board[x][y] == BANK and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += (highSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 4
+                            player_bank[players.index(player)] += (highSpace/pcCount)
 
                     elif board[x][y] ==FINANCIAL_DISTRICT and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += (highSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 4
+                            player_bank[players.index(player)] += (highSpace/pcCount)
 
                     elif board[x][y] == DISTILLERY and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += (highSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 4
+                            player_bank[players.index(player)] += (highSpace/pcCount)
 
                     elif board[x][y] == RACE_TRACK and piece.player == player:
+                        for piece in pieces[x][y]:
+                            if piece.pc == "pc":
+                                pcCount += 1
                         if copFlag == True:
                             #if player.copbribe = true then effect dampened, 
-                            player_bank[players.index(player)] += 2
+                            player_bank[players.index(player)] += (highSpace/pcCount)*copDamping
                         else:
-                            player_bank[players.index(player)] += 4
-
+                            player_bank[players.index(player)] += (highSpace/pcCount)
+    i = 0
+    for pb in player_bank:
+        player_bank[i] = round(pb, 1)
+        i +=1
 
 
     return player_bank
@@ -497,7 +525,7 @@ def copCheck(x, y, pieces):
         for j in yj:
             if isOnBoard(x+i,y+j):
                 for piece in pieces[x+i][y+j]:
-                    if piece.player == "cop":
+                    if piece.player == "cop" or piece.rat == True:
                         copFlag = True
                         break
     
@@ -910,22 +938,22 @@ def move(player,board,pieces):
     MAINCLOCK.tick(FPS)
     pygame.display.update()
     while wait_for_move == True:
-        for event in pygame.event.get():
-            if event.type == MOUSEBUTTONUP:
-                mousex, mousey = event.pos
-                x,y = getSpaceClicked(mousex, mousey)
-                x_old = x
-                y_old = y
-                for piece in pieces[x][y]:
-                    if piece.player == player:
-                        #UI - does this need a message or is this intuitive?
-                        pieces[x][y].remove(piece)
-                        drawBoard(board, pieces)
-                        MAINCLOCK.tick(FPS)
-                        pygame.display.update()
-                        wait_for_space = True
-                        while wait_for_space == True:
-                            try:
+        try:
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONUP:
+                    mousex, mousey = event.pos
+                    x,y = getSpaceClicked(mousex, mousey)
+                    x_old = x
+                    y_old = y
+                    for piece in pieces[x][y]:
+                        if piece.player == player:
+                            #UI - does this need a message or is this intuitive?
+                            pieces[x][y].remove(piece)
+                            drawBoard(board, pieces)
+                            MAINCLOCK.tick(FPS)
+                            pygame.display.update()
+                            wait_for_space = True
+                            while wait_for_space == True:
                                 for event in pygame.event.get():
                                     if event.type == MOUSEBUTTONUP:
                                         mousex, mousey = event.pos
@@ -943,14 +971,15 @@ def move(player,board,pieces):
                                             DISPLAYSURF.blit(moveWarning, moveWarningRect)
                                         MAINCLOCK.tick(FPS)
                                         pygame.display.update()
-                            except TypeError:
-                                continue
-                    else:
-                        drawBoard(board, pieces)
-                        pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
-                        DISPLAYSURF.blit(pieceWarning, pieceWarningRect)
-                        MAINCLOCK.tick(FPS)
-                        pygame.display.update()
+
+                        else:
+                            drawBoard(board, pieces)
+                            pieceWarningRect = pygame.Rect(mousex, mousey, pieceWarningRect[2],pieceWarningRect[3])
+                            DISPLAYSURF.blit(pieceWarning, pieceWarningRect)
+                            MAINCLOCK.tick(FPS)
+                            pygame.display.update()
+        except TypeError:
+            continue
 
 
 
@@ -1707,6 +1736,40 @@ def job(player, board, pieces, mousex, mousey):
             chargeAction = True
             return jail, chargeAction
 
+def bail(turn,pieces):
+    rat1 = madeMan(BLACK,players[0])
+    rat1.rat = True
+    rat2 = madeMan(BRIGHTBLUE,players[1])
+    rat2.rat = True
+    #rat3 = madeMan(BLACK,players[2])
+    #rat3.rat = True
+    #rat4 = madeMan(BLACK,players[3])
+    #rat4.rat = True
+    destiny = random.random()
+    if destiny <.5:
+        if turn == "player1":
+            pieces[0][0].append(rat1)
+        elif turn == "player2":
+            pieces[4][0].append(rat2)
+        #elif turn == "player3":
+            #pieces[0][4].append(rat3)
+        #elif turn == "player4":
+            #pieces[4][4].append(rat4)
+    elif destiny >=.5:
+        if turn == "player1":
+            pieces[0][0].append(player11)
+        elif turn == "player2":
+            pieces[4][0].append(player21)
+       #elif turn == "player3":
+            #pieces[0][4].append(player31)
+        #elif turn == "player4":
+            #pieces[4][4].append(player41)
+    
+
+
+
+
+
 
 def copMove(board,pieces):
     
@@ -1717,18 +1780,32 @@ def copMove(board,pieces):
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
             for piece in pieces[x][y]:
-                if (piece.player == "cop" or piece.player == "journalist") and copcount <= 2:
-                    while isOnBoard(x + delta_x, y + delta_y) != True:
-                        delta_x = random.choice((-1,0,1))
-                        delta_y = random.choice((-1,0,1))
-                        pieces[x][y].remove(piece)
-                        pieces[x + delta_x][y + delta_y].append(piece)
-                    delta_x = 200
-                    delta_y = 200
-                    copcount += 1
-                    drawBoard(board, pieces)
-                    MAINCLOCK.tick(FPS)
-                    pygame.display.update()
+                try:
+                    if (piece.player == "cop" or piece.player == "journalist") and copcount <= 2:
+                        while isOnBoard(x + delta_x, y + delta_y) != True:
+                            delta_x = random.choice((-1,0,1))
+                            delta_y = random.choice((-1,0,1))
+                            pieces[x][y].remove(piece)
+                            pieces[x + delta_x][y + delta_y].append(piece)
+                        delta_x = 200
+                        delta_y = 200
+                        copcount += 1
+                        drawBoard(board, pieces)
+                        MAINCLOCK.tick(FPS)
+                        pygame.display.update()
+                except ValueError:
+                    print("BUG!")
+                    break
+                #Traceback (most recent call last):
+  #File "GangCity.py", line 1903, in <module>
+    #main()
+  #File "GangCity.py", line 173, in main
+    #if runGame() == False:
+  #File "GangCity.py", line 388, in runGame
+    #copMove(mainBoard,pieces)
+ # File "GangCity.py", line 1787, in copMove
+    #pieces[x][y].remove(piece)
+#ValueError: list.remove(x): x not in list
 
 def election(mainBoard, pieces):
 
